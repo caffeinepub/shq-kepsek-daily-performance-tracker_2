@@ -42,7 +42,7 @@ export function SubmissionStatusBadge({ submitted, className }: SubmissionStatus
         variant="default" 
         className={cn('bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-300', className)}
       >
-        Sudah Mengisi
+        Submitted
       </Badge>
     );
   }
@@ -52,7 +52,7 @@ export function SubmissionStatusBadge({ submitted, className }: SubmissionStatus
       variant="destructive" 
       className={cn('bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-red-300', className)}
     >
-      Belum Mengisi
+      Not Submitted
     </Badge>
   );
 }

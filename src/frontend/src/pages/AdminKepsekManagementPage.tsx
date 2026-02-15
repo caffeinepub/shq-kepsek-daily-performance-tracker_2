@@ -19,40 +19,40 @@ export default function AdminKepsekManagementPage({ onNavigateToDashboard }: Adm
       <AppHeader>
         <Button onClick={onNavigateToDashboard} variant="outline" size="sm">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Kembali ke Dashboard
+          Back to Dashboard
         </Button>
       </AppHeader>
 
       <main className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Kelola Kepala Sekolah
+            Manage School Principals
           </h1>
           <p className="text-muted-foreground mt-1">
-            Daftarkan dan kelola profil kepala sekolah
+            Register and manage school principal profiles
           </p>
         </div>
 
         <Alert className="mb-6">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Untuk mendaftarkan Kepsek baru: Minta mereka login terlebih dahulu dengan Internet Identity, 
-            kemudian assign role "user" melalui backend, lalu mereka dapat mengisi profil sekolah mereka.
+            To register a new Kepsek: Have them log in first with Internet Identity, 
+            then assign the "user" role via backend, and finally register their school profile here using their Principal ID.
           </AlertDescription>
         </Alert>
 
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Profil Sekolah Anda</CardTitle>
+            <CardTitle>Register School Profile</CardTitle>
             <CardDescription>
-              Sebagai admin, Anda juga dapat mendaftarkan profil sekolah
+              Create a school profile for a Kepsek user
             </CardDescription>
           </CardHeader>
           <CardContent>
             {!showForm ? (
               <Button onClick={() => setShowForm(true)} className="w-full">
                 <UserPlus className="h-4 w-4 mr-2" />
-                Daftarkan Profil Sekolah
+                Register School Profile
               </Button>
             ) : (
               <KepsekProfileForm onSuccess={() => setShowForm(false)} onCancel={() => setShowForm(false)} />

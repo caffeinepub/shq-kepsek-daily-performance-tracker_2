@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useGetTodayReports, useGetAllReportsForKepsek } from '../../hooks/useQueries';
+import { useGetReportsForDate } from '../../hooks/useQueries';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   LineChart,
@@ -28,7 +28,7 @@ interface CompletionDataPoint {
 }
 
 export default function AnalyticsSection() {
-  const { data: todayReports, isLoading } = useGetTodayReports();
+  const { data: todayReports, isLoading } = useGetReportsForDate(new Date());
 
   // Calculate aggregate completion percentages
   const completionData = useMemo((): CompletionDataPoint[] | null => {

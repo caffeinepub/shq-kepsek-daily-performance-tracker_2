@@ -114,12 +114,17 @@ export interface SchoolSummary {
 export interface DailyReport {
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
+    departureTime: Time;
     date: Time;
     totalScore: bigint;
     teacherControlScore: bigint;
     attendanceScore: bigint;
     classControlScore: bigint;
     attendancePhoto?: ExternalBlob;
+}
+export interface UserProfile {
+    name: string;
+    email: string;
 }
 export interface _CaffeineStorageRefillResult {
     success?: boolean;
@@ -142,16 +147,19 @@ export interface backendInterface {
     getActiveSchoolsCount(): Promise<bigint>;
     getActiveSchoolsList(): Promise<Array<SchoolSummary>>;
     getAllDailyReportsForKepsek(): Promise<Array<DailyReport>>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getDailyReport(principal: Principal, date: Time): Promise<DailyReport | null>;
+    getReportsForDate(date: Time): Promise<Array<RankedDailyReport>>;
     getSchool(principal: Principal): Promise<School | null>;
-    getTodayReports(): Promise<Array<RankedDailyReport>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveDailyReport(dailyReport: DailyReport): Promise<void>;
     saveSchool(school: School): Promise<void>;
     saveSchoolForPrincipal(principal: Principal, school: School): Promise<void>;
 }
-import type { DailyReport as _DailyReport, ExternalBlob as _ExternalBlob, RankedDailyReport as _RankedDailyReport, School as _School, Time as _Time, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { DailyReport as _DailyReport, ExternalBlob as _ExternalBlob, RankedDailyReport as _RankedDailyReport, School as _School, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -308,60 +316,88 @@ export class Backend implements backendInterface {
             return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getCallerUserProfile(): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCallerUserProfile();
+                return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCallerUserProfile();
+            return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n15(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n16(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n15(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n16(this._uploadFile, this._downloadFile, result);
         }
     }
     async getDailyReport(arg0: Principal, arg1: Time): Promise<DailyReport | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getDailyReport(arg0, arg1);
-                return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getDailyReport(arg0, arg1);
-            return from_candid_opt_n17(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getSchool(arg0: Principal): Promise<School | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getSchool(arg0);
                 return from_candid_opt_n18(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getSchool(arg0);
+            const result = await this.actor.getDailyReport(arg0, arg1);
             return from_candid_opt_n18(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getTodayReports(): Promise<Array<RankedDailyReport>> {
+    async getReportsForDate(arg0: Time): Promise<Array<RankedDailyReport>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getTodayReports();
+                const result = await this.actor.getReportsForDate(arg0);
                 return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getTodayReports();
+            const result = await this.actor.getReportsForDate(arg0);
             return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getSchool(arg0: Principal): Promise<School | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getSchool(arg0);
+                return from_candid_opt_n22(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getSchool(arg0);
+            return from_candid_opt_n22(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUserProfile(arg0);
+                return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUserProfile(arg0);
+            return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -378,17 +414,31 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async saveDailyReport(arg0: DailyReport): Promise<void> {
+    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.saveDailyReport(await to_candid_DailyReport_n22(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.saveCallerUserProfile(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.saveDailyReport(await to_candid_DailyReport_n22(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.saveCallerUserProfile(arg0);
+            return result;
+        }
+    }
+    async saveDailyReport(arg0: DailyReport): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveDailyReport(await to_candid_DailyReport_n23(this._uploadFile, this._downloadFile, arg0));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveDailyReport(await to_candid_DailyReport_n23(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -430,8 +480,8 @@ async function from_candid_ExternalBlob_n14(_uploadFile: (file: ExternalBlob) =>
 async function from_candid_RankedDailyReport_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _RankedDailyReport): Promise<RankedDailyReport> {
     return await from_candid_record_n21(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n16(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n17(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
@@ -439,10 +489,13 @@ function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: Externa
 async function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ExternalBlob]): Promise<ExternalBlob | null> {
     return value.length === 0 ? null : await from_candid_ExternalBlob_n14(_uploadFile, _downloadFile, value[0]);
 }
-async function from_candid_opt_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_DailyReport]): Promise<DailyReport | null> {
+function from_candid_opt_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : value[0];
+}
+async function from_candid_opt_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_DailyReport]): Promise<DailyReport | null> {
     return value.length === 0 ? null : await from_candid_DailyReport_n11(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_School]): School | null {
+function from_candid_opt_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_School]): School | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -454,6 +507,7 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
+    departureTime: _Time;
     date: _Time;
     totalScore: bigint;
     teacherControlScore: bigint;
@@ -463,6 +517,7 @@ async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promi
 }): Promise<{
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
+    departureTime: Time;
     date: Time;
     totalScore: bigint;
     teacherControlScore: bigint;
@@ -473,6 +528,7 @@ async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promi
     return {
         programProblemSolvingScore: value.programProblemSolvingScore,
         waliSantriResponseScore: value.waliSantriResponseScore,
+        departureTime: value.departureTime,
         date: value.date,
         totalScore: value.totalScore,
         teacherControlScore: value.teacherControlScore,
@@ -505,7 +561,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
     };
 }
-function from_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -520,10 +576,10 @@ async function from_candid_vec_n10(_uploadFile: (file: ExternalBlob) => Promise<
 async function from_candid_vec_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_RankedDailyReport>): Promise<Array<RankedDailyReport>> {
     return await Promise.all(value.map(async (x)=>await from_candid_RankedDailyReport_n20(_uploadFile, _downloadFile, x)));
 }
-async function to_candid_DailyReport_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: DailyReport): Promise<_DailyReport> {
-    return await to_candid_record_n23(_uploadFile, _downloadFile, value);
+async function to_candid_DailyReport_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: DailyReport): Promise<_DailyReport> {
+    return await to_candid_record_n24(_uploadFile, _downloadFile, value);
 }
-async function to_candid_ExternalBlob_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
+async function to_candid_ExternalBlob_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
     return await _uploadFile(value);
 }
 function to_candid_UserRole_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
@@ -535,9 +591,10 @@ function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: Exte
 function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation | null): [] | [__CaffeineStorageRefillInformation] {
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
 }
-async function to_candid_record_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+async function to_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
+    departureTime: Time;
     date: Time;
     totalScore: bigint;
     teacherControlScore: bigint;
@@ -547,6 +604,7 @@ async function to_candid_record_n23(_uploadFile: (file: ExternalBlob) => Promise
 }): Promise<{
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
+    departureTime: _Time;
     date: _Time;
     totalScore: bigint;
     teacherControlScore: bigint;
@@ -557,12 +615,13 @@ async function to_candid_record_n23(_uploadFile: (file: ExternalBlob) => Promise
     return {
         programProblemSolvingScore: value.programProblemSolvingScore,
         waliSantriResponseScore: value.waliSantriResponseScore,
+        departureTime: value.departureTime,
         date: value.date,
         totalScore: value.totalScore,
         teacherControlScore: value.teacherControlScore,
         attendanceScore: value.attendanceScore,
         classControlScore: value.classControlScore,
-        attendancePhoto: value.attendancePhoto ? candid_some(await to_candid_ExternalBlob_n24(_uploadFile, _downloadFile, value.attendancePhoto)) : candid_none()
+        attendancePhoto: value.attendancePhoto ? candid_some(await to_candid_ExternalBlob_n25(_uploadFile, _downloadFile, value.attendancePhoto)) : candid_none()
     };
 }
 function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {

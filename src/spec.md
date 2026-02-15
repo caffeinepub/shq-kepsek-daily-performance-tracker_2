@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Let a central admin edit any school entry from the Admin “Active Schools” list, even when the admin is not the school’s owning principal.
+**Goal:** Fix the Admin Monitoring table so daily progress indicators reliably display for every report row on any selected date.
 
 **Planned changes:**
-- Add an admin-only backend API to update a School record under an arbitrary provided Principal key (not the caller).
-- Add an Edit action per row in the Admin “Active Schools” table that opens a prefilled modal/form to edit School Name, Region, Principal Name, and Active status.
-- Extend the React Query data layer with an admin update-school mutation by principal ID, and invalidate/refetch the active schools list and active schools count on success.
+- Update the Admin Monitoring table to always render the five daily progress category indicators (Attendance, Class Control, Teacher Control, Parent/Guardian Response, Program & Problem Solving) for each returned report row and selected date.
+- Fix `DailyProgressIndicators` completion detection to use robust checks against actual DailyReport fields (including correct handling of optional/opt Candid fields) rather than fragile equality checks like `score === 20`.
+- Ensure any user-facing text touched during the fix (including empty states) is in English.
 
-**User-visible outcome:** A central admin can click Edit on a school in the Active Schools table, update its details (including toggling Active off), save changes, and see the list refresh—removing the school if it was set inactive; non-admin users see a clear permission error if they attempt the save.
+**User-visible outcome:** In Admin Monitoring, selecting any date that has reports will show non-blank daily progress indicators for each report row, with completion status accurately reflecting the stored report data.

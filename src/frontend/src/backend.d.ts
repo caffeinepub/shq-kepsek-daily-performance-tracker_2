@@ -32,12 +32,17 @@ export interface SchoolSummary {
 export interface DailyReport {
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
+    departureTime: Time;
     date: Time;
     totalScore: bigint;
     teacherControlScore: bigint;
     attendanceScore: bigint;
     classControlScore: bigint;
     attendancePhoto?: ExternalBlob;
+}
+export interface UserProfile {
+    name: string;
+    email: string;
 }
 export enum UserRole {
     admin = "admin",
@@ -49,11 +54,14 @@ export interface backendInterface {
     getActiveSchoolsCount(): Promise<bigint>;
     getActiveSchoolsList(): Promise<Array<SchoolSummary>>;
     getAllDailyReportsForKepsek(): Promise<Array<DailyReport>>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getDailyReport(principal: Principal, date: Time): Promise<DailyReport | null>;
+    getReportsForDate(date: Time): Promise<Array<RankedDailyReport>>;
     getSchool(principal: Principal): Promise<School | null>;
-    getTodayReports(): Promise<Array<RankedDailyReport>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveDailyReport(dailyReport: DailyReport): Promise<void>;
     saveSchool(school: School): Promise<void>;
     saveSchoolForPrincipal(principal: Principal, school: School): Promise<void>;

@@ -1,17 +1,20 @@
 import Text "mo:core/Text";
 import Map "mo:core/Map";
-import Time "mo:core/Time";
-import Iter "mo:core/Iter";
-import Array "mo:core/Array";
-import Order "mo:core/Order";
 import List "mo:core/List";
 import Nat "mo:core/Nat";
+import Time "mo:core/Time";
+import Order "mo:core/Order";
+import Array "mo:core/Array";
+import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import MixinStorage "blob-storage/Mixin";
 import BlobStorage "blob-storage/Storage";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+
+// Upgrade persistent actor with embedded migration routine.
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -25,14 +28,20 @@ actor {
     active : Bool;
   };
 
+  public type UserProfile = {
+    name : Text;
+    email : Text;
+  };
+
   public type DailyReport = {
     date : Time.Time;
-    attendanceScore : Nat; // 0-20
-    classControlScore : Nat; // 0-20
-    teacherControlScore : Nat; // 0-20
-    waliSantriResponseScore : Nat; // 0-20
-    programProblemSolvingScore : Nat; // 0-20
-    totalScore : Nat; // 0-100
+    attendanceScore : Nat;
+    departureTime : Time.Time; // Separate field for departure time
+    classControlScore : Nat;
+    teacherControlScore : Nat;
+    waliSantriResponseScore : Nat;
+    programProblemSolvingScore : Nat;
+    totalScore : Nat;
     attendancePhoto : ?BlobStorage.ExternalBlob;
   };
 
@@ -52,12 +61,37 @@ actor {
     school : School;
   };
 
-  let schools = Map.empty<Principal, School>();
-  let dailyReports = Map.empty<Principal, Map.Map<Time.Time, DailyReport>>();
+  // Persistent storage for schools, user profiles & daily reports!
+  var schools = Map.empty<Principal, School>();
+  var userProfiles = Map.empty<Principal, UserProfile>();
+  var dailyReports = Map.empty<Principal, Map.Map<Time.Time, DailyReport>>();
 
+  // User Profile Management Functions
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view profiles");
+    };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+    userProfiles.add(caller, profile);
+  };
+
+  // School Management Functions
   public shared ({ caller }) func saveSchool(school : School) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can save schools");
+    if (not AccessControl.isAdmin(accessControlState, caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only Kepsek or Admin can save a school");
     };
     schools.add(caller, school);
   };
@@ -77,6 +111,7 @@ actor {
     schools.get(principal);
   };
 
+  // Daily Report Functions
   public shared ({ caller }) func saveDailyReport(dailyReport : DailyReport) : async () {
     // Only users (Kepsek) can submit daily reports
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
@@ -95,12 +130,13 @@ actor {
       };
     };
 
+    let reportDayKey = normalizeToDay(dailyReport.date);
+
     let kepsekReports = switch (dailyReports.get(caller)) {
       case (null) { Map.empty<Time.Time, DailyReport>() };
       case (?reports) { reports };
     };
-
-    kepsekReports.add(dailyReport.date, dailyReport);
+    kepsekReports.add(reportDayKey, dailyReport);
     dailyReports.add(caller, kepsekReports);
   };
 
@@ -110,9 +146,11 @@ actor {
       Runtime.trap("Unauthorized: Can only view your own daily reports");
     };
 
+    let reportDayKey = normalizeToDay(date);
+
     switch (dailyReports.get(principal)) {
       case (null) { null };
-      case (?reports) { reports.get(date) };
+      case (?reports) { reports.get(reportDayKey) };
     };
   };
 
@@ -130,18 +168,20 @@ actor {
     };
   };
 
-  public query ({ caller }) func getTodayReports() : async [RankedDailyReport] {
+  // Admin Dashboard Functions
+  public query ({ caller }) func getReportsForDate(date : Time.Time) : async [RankedDailyReport] {
     // Admin-only: monitoring dashboard
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view monitoring dashboard");
     };
 
-    let today = Time.now();
+    let dateKey = normalizeToDay(date);
+
     let ranked = List.empty<RankedDailyReport>();
 
     for ((principal, reports) in dailyReports.entries()) {
-      switch (reports.get(today)) {
-        case (null) { };
+      switch (reports.get(dateKey)) {
+        case (null) {};
         case (?dailyReport) {
           ranked.add({
             kepsek = principal;
@@ -187,5 +227,11 @@ actor {
       }
     );
   };
-};
 
+  // Helper Functions
+  func normalizeToDay(timestamp : Time.Time) : Time.Time {
+    // Convert nanoseconds to days, then back to nanoseconds at midnight
+    let days = timestamp / 86400000000000;
+    days * 86400000000000;
+  };
+};

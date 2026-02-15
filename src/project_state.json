@@ -1,13 +1,20 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 9,
+  "projectStateVersion": 23,
   "summary": "Web app 'SHQ Kepsek Daily Performance Tracker' with two access levels (Direktur/Manajemen and Kepala Sekolah) to track daily school operational performance via a daily form and automatic 100-point weighted scoring, presented via admin monitoring tables, rankings, and performance charts plus a mobile-friendly user form UI.",
   "architectural_notes": [
     "Scoring is automatic on every daily form submission; total score max 100 with five equal-weight categories (20 points each).",
-    "Color indicator rule: green for high score, red for not yet submitted today."
+    "Color indicator rule: green for high score, red for not yet submitted today.",
+    "Kepsek dashboard access and profile loading should rely on the logged-in Internet Identity Principal and fetch the School record associated with that Principal, regardless of whether the School was created by Admin or by the Kepsek."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Kepsek: data yang disimpan di dashboard/profil Kepsek terhapus/tidak tersimpan ketika login kembali (persistensi/load data bermasalah).",
+    "Admin/Manajemen: perubahan data yang disimpan oleh Kepsek tidak muncul/terupdate di dashboard Manajemen (sinkronisasi atau query/cache tidak ter-refresh).",
+    "Issue persists in production (Version 7): Kepsek dashboard/profile saved data disappears after re-login (persistence/load still broken).",
+    "Admin: laporan harian yang sudah disubmit Kepsek (termasuk foto absen dan jam datang/pulang) tidak muncul di dashboard Admin meskipun Kepsek sudah submit.",
+    "Admin/Manajemen: progres laporan harian Kepsek (absensi, kontrol kelas, kontrol guru, respon wali santri, program & problem solving) tidak tampil di tabel Monitoring Admin untuk semua tanggal (tidak muncul sama sekali)."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-implement-authentication-and-role-based-access-with-two-roles-director-management-admin-and-principal-kepsek-users-must-sign-in-using-internet-identity-and-the-app-must-route-users-to-the-correct-dashboard-based-on-their-assigned-role",
@@ -102,6 +109,110 @@
       "title": "Extend the React Query layer to support updating a school for a specific principal from the admin UI, including cache invalidation for active schools list and active schools count.",
       "reqIds": [
         "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-register-school-profile-flow-so-an-admin-can-create-save-a-school-profile-for-a-specific-kepsek-principal-id-and-the-kepsek-will-see-that-profile-upon-login-on-the-kepsek-dashboard",
+      "title": "Update the Admin ‘Register School Profile’ flow so an admin can create/save a School profile for a specific Kepsek (Principal ID) and the Kepsek will see that profile upon login on the Kepsek dashboard.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-kepsek-missing-school-state-so-that-if-a-kepsek-logs-in-with-role-user-but-no-school-is-found-for-their-principal-the-ui-clearly-tells-them-what-to-do-and-displays-their-principal-id-for-the-admin-to-use",
+      "title": "Improve the Kepsek missing-school state so that if a Kepsek logs in with role 'user' but no School is found for their Principal, the UI clearly tells them what to do and displays their Principal ID for the admin to use.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-daily-report-keying-so-a-kepsek-s-saved-daily-report-can-be-reliably-retrieved-after-re-login-no-apparent-data-deleted-behavior-normalize-the-daily-report-date-key-to-the-start-of-day-midnight-consistently-when-saving-and-when-fetching-a-report-by-date",
+      "title": "Fix daily report keying so a Kepsek’s saved daily report can be reliably retrieved after re-login (no apparent ‘data deleted’ behavior). Normalize the daily report date key to the start-of-day (midnight) consistently when saving and when fetching a report by date.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-react-query-hooks-so-the-kepsek-today-report-fetch-uses-the-same-normalized-start-of-day-timestamp-used-when-saving-the-report-and-ensure-relevant-admin-queries-are-invalidated-refetched-after-a-kepsek-saves-a-report",
+      "title": "Update frontend React Query hooks so the Kepsek ‘today report’ fetch uses the same normalized start-of-day timestamp used when saving the report, and ensure relevant admin queries are invalidated/refetched after a Kepsek saves a report.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-regression-proof-reload-path-for-the-kepsek-dashboard-so-the-ui-reliably-re-fetches-the-kepsek-s-school-profile-and-today-s-report-after-re-login-and-does-not-rely-on-optimistic-cache-state-ensure-react-query-keys-and-invalidations-are-scoped-such-that-data-is-refetched-correctly-when-the-authenticated-principal-changes-logout-login-and-after-a-successful-save",
+      "title": "Add a regression-proof reload path for the Kepsek dashboard so the UI reliably re-fetches the Kepsek’s School profile and Today’s report after re-login, and does not rely on optimistic cache state. Ensure React Query keys and invalidations are scoped such that data is refetched correctly when the authenticated principal changes (logout/login) and after a successful save.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-admin-monitoring-data-fetching-so-submitted-kepsek-reports-reliably-appear-on-the-admin-dashboard-after-admin-re-login-identity-change-without-requiring-a-manual-hard-refresh",
+      "title": "Fix Admin Monitoring data fetching so submitted Kepsek reports reliably appear on the Admin dashboard after Admin re-login (identity change) without requiring a manual hard refresh.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-admin-monitoring-retrieval-by-selected-date-end-to-end-add-a-backend-query-that-returns-ranked-reports-for-an-arbitrary-date-normalized-to-start-of-day-and-update-the-admin-dashboard-monitoring-hook-component-to-use-the-selected-date-instead-of-always-using-today",
+      "title": "Implement Admin monitoring retrieval by selected date end-to-end: add a backend query that returns ranked reports for an arbitrary date (normalized to start-of-day), and update the Admin dashboard monitoring hook/component to use the selected date instead of always using 'today'.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-split-the-attendance-departure-time-into-its-own-dedicated-field-separate-from-arrival-time-in-the-stored-daily-report-data-model-and-display-these-as-separate-fields-in-the-admin-report-detail-view-no-other-admin-report-layout-content-changes-beyond-showing-the-separated-fields",
+      "title": "Split the attendance departure time into its own dedicated field (separate from arrival time) in the stored Daily Report data model, and display these as separate fields in the Admin report detail view (no other Admin report layout/content changes beyond showing the separated fields).",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-existing-admin-dashboard-monitoring-table-to-display-per-report-daily-progress-for-each-kepsek-across-the-five-daily-report-categories-attendance-class-control-teacher-control-parent-guardian-wali-santri-response-and-school-program-problem-solving-for-the-currently-selected-date-only-the-progress-indicator-must-be-visible-directly-in-the-table-row-not-only-inside-the-detail-modal",
+      "title": "Update the existing Admin dashboard Monitoring table to display per-report daily progress for each Kepsek across the five daily-report categories: Attendance, Class Control, Teacher Control, Parent/Guardian (Wali Santri) Response, and School Program & Problem Solving (for the currently selected date only). The progress indicator must be visible directly in the table row (not only inside the detail modal).",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-all-user-facing-text-that-is-added-or-modified-as-part-of-the-new-admin-daily-progress-ui-is-in-english-e-g-column-header-progress-labels-legend-tooltip-text-and-empty-state-text-if-touched",
+      "title": "Ensure all user-facing text that is added or modified as part of the new Admin daily-progress UI is in English (e.g., column header, progress labels, legend/tooltip text, and empty-state text if touched).",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-monitoring-table-so-that-the-per-report-daily-progress-indicators-attendance-class-control-teacher-control-parent-guardian-response-program-problem-solving-reliably-render-for-every-returned-report-for-any-selected-date",
+      "title": "Fix the Admin Monitoring table so that the per-report daily progress indicators (Attendance, Class Control, Teacher Control, Parent/Guardian Response, Program & Problem Solving) reliably render for every returned report for any selected date.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-completion-logic-used-by-the-admin-daily-progress-indicators-so-that-it-matches-the-actual-stored-dailyreport-data-and-does-not-depend-on-fragile-equality-checks-e-g-score-20-ensuring-categories-display-as-completed-when-the-corresponding-section-is-filled-according-to-the-report-data",
+      "title": "Update the completion logic used by the Admin daily progress indicators so that it matches the actual stored DailyReport data and does not depend on fragile equality checks (e.g., `score === 20`), ensuring categories display as completed when the corresponding section is filled according to the report data.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-any-user-facing-text-that-is-added-or-modified-while-implementing-this-fix-is-in-english-including-admin-monitoring-table-descriptions-empty-states-button-labels-and-status-badges-if-touched",
+      "title": "Ensure any user-facing text that is added or modified while implementing this fix is in English (including Admin Monitoring table descriptions, empty states, button labels, and status badges if touched).",
+      "reqIds": [
+        "REQ-34"
       ],
       "version": 1
     }
@@ -205,6 +316,62 @@
       "reqIds": [
         "REQ-15"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Provide a dedicated Kepala Sekolah (Kepsek) dashboard UI (post-login) for principals",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Allow a Kepsek to log in and access the Kepsek dashboard using a School profile that was previously created/saved by Admin (i.e., admin-managed school data must be linked to the Kepsek’s Internet Identity/Principal so the Kepsek can use it on login)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Update backend authorization and storage behavior so a Kepsek user can save (and later read) their own School profile under their own Principal, while keeping the existing admin capability to save/update a School for any Principal.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Fix the Admin/Management ‘today monitoring’ query so it matches the same normalized day key used by Kepsek submissions, ensuring Kepsek submissions appear/refresh on the admin dashboard after being saved.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Persist Kepsek School profiles and Daily Reports across canister upgrades so saved data does not appear “deleted” after the user logs in again (including after a new production deployment). Convert in-memory Maps used for `schools`, `userProfiles`, and `dailyReports` in `backend/main.mo` into upgrade-safe stable storage using `system preupgrade`/`system postupgrade` to serialize/restore data.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Pisahkan field 'Jam Pulang' sebagai field terpisah (bukan digabung dengan Jam Datang), terutama untuk tampilan/field yang digunakan di dashboard Admin tanpa perubahan lain pada laporan Admin.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Ensure Kepsek School profiles and Daily Reports persist reliably across re-login and canister upgrades so previously submitted reports (including attendance photo) are still available to Admin after deployments.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Tampilkan progres laporan harian yang sudah dikerjakan Kepsek (absensi, kontrol kelas, kontrol guru, respon wali santri, program & problem solving) pada dashboard Admin/Manajemen yang sudah ada, per hari (daily)",
+      "reqIds": [],
       "status": "pending"
     }
   ],

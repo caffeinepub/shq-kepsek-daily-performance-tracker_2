@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useGetActiveSchoolsCount, useGetTodayReports } from '../../hooks/useQueries';
+import { useGetActiveSchoolsCount, useGetReportsForDate } from '../../hooks/useQueries';
 import { Skeleton } from '@/components/ui/skeleton';
 import { School, ClipboardCheck } from 'lucide-react';
 
@@ -9,9 +9,9 @@ interface AdminSummaryCardsProps {
 
 export default function AdminSummaryCards({ selectedDate }: AdminSummaryCardsProps) {
   const { data: activeSchoolsCount, isLoading: countLoading } = useGetActiveSchoolsCount();
-  const { data: todayReports, isLoading: reportsLoading } = useGetTodayReports();
+  const { data: reports, isLoading: reportsLoading } = useGetReportsForDate(selectedDate);
 
-  const submissionsCount = todayReports?.length || 0;
+  const submissionsCount = reports?.length || 0;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 mb-6">
@@ -36,7 +36,7 @@ export default function AdminSummaryCards({ selectedDate }: AdminSummaryCardsPro
 
       <Card className="shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Laporan Hari Ini</CardTitle>
+          <CardTitle className="text-sm font-medium">Laporan Tanggal Ini</CardTitle>
           <ClipboardCheck className="h-5 w-5 text-green-600" />
         </CardHeader>
         <CardContent>

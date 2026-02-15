@@ -5,6 +5,8 @@ import MonitoringTable from '../components/admin/MonitoringTable';
 import AnalyticsSection from '../components/admin/AnalyticsSection';
 import ActiveSchoolsSection from '../components/admin/ActiveSchoolsSection';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Settings } from 'lucide-react';
 
 interface AdminDashboardPageProps {
@@ -12,7 +14,21 @@ interface AdminDashboardPageProps {
 }
 
 export default function AdminDashboardPage({ onNavigateToManagement }: AdminDashboardPageProps) {
-  const [selectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = new Date(e.target.value);
+    if (!isNaN(newDate.getTime())) {
+      setSelectedDate(newDate);
+    }
+  };
+
+  const formatDateForInput = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -31,6 +47,20 @@ export default function AdminDashboardPage({ onNavigateToManagement }: AdminDash
           <p className="text-muted-foreground mt-1">
             Monitoring performa harian kepala sekolah
           </p>
+        </div>
+
+        {/* Date Selector */}
+        <div className="mb-6">
+          <Label htmlFor="date-select" className="text-sm font-medium mb-2 block">
+            Select date
+          </Label>
+          <Input
+            id="date-select"
+            type="date"
+            value={formatDateForInput(selectedDate)}
+            onChange={handleDateChange}
+            className="max-w-xs"
+          />
         </div>
 
         {/* Summary Cards */}

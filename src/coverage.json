@@ -1,61 +1,65 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T05:01:38.226Z",
+  "generatedAt": "2026-02-15T10:44:37.986Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 2,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-15",
-        "summary": "Add an admin-only backend API that allows a central admin to update a School record for an arbitrary principal (i.e., edit a school entry from the admin school list without being the school owner). The API must accept (principal: Principal, school: School) and persist the school under the provided principal key.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-16",
-        "summary": "Add a frontend edit flow in the Admin \"Active Schools\" table so an admin can edit school fields (School Name, Region, Principal Name, Active status) for a selected row and save changes back to the backend for that row’s Principal ID.",
+        "id": "REQ-32",
+        "summary": "Fix the Admin Monitoring table so that the per-report daily progress indicators (Attendance, Class Control, Teacher Control, Parent/Guardian Response, Program & Problem Solving) reliably render for every returned report for any selected date.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/admin/EditSchoolDialog.tsx",
-          "frontend/src/components/admin/ActiveSchoolsSection.tsx"
+          "frontend/src/components/admin/DailyProgressIndicators.tsx",
+          "frontend/src/components/admin/MonitoringTable.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/admin/EditSchoolDialog.tsx",
-          "frontend/src/components/admin/ActiveSchoolsSection.tsx"
+          "frontend/src/components/admin/DailyProgressIndicators.tsx",
+          "frontend/src/components/admin/MonitoringTable.tsx"
         ]
       },
       {
-        "id": "REQ-17",
-        "summary": "Extend the React Query layer to support updating a school for a specific principal from the admin UI, including cache invalidation for active schools list and active schools count.",
+        "id": "REQ-33",
+        "summary": "Update the completion logic used by the Admin daily progress indicators so that it matches the actual stored DailyReport data and does not depend on fragile equality checks (e.g., `score === 20`), ensuring categories display as completed when the corresponding section is filled according to the report data.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/components/admin/DailyProgressIndicators.tsx",
+          "frontend/src/components/admin/ReportDetailView.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/components/admin/DailyProgressIndicators.tsx",
+          "frontend/src/components/admin/ReportDetailView.tsx"
+        ]
+      },
+      {
+        "id": "REQ-34",
+        "summary": "Ensure any user-facing text that is added or modified while implementing this fix is in English (including Admin Monitoring table descriptions, empty states, button labels, and status badges if touched).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/admin/MonitoringTable.tsx",
+          "frontend/src/components/StatusPills.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/admin/MonitoringTable.tsx",
+          "frontend/src/components/StatusPills.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/admin/ActiveSchoolsSection.tsx",
-    "frontend/src/components/admin/EditSchoolDialog.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/components/StatusPills.tsx",
+    "frontend/src/components/admin/DailyProgressIndicators.tsx",
+    "frontend/src/components/admin/MonitoringTable.tsx",
+    "frontend/src/components/admin/ReportDetailView.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

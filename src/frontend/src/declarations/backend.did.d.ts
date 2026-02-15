@@ -13,6 +13,7 @@ import type { Principal } from '@icp-sdk/core/principal';
 export interface DailyReport {
   'programProblemSolvingScore' : bigint,
   'waliSantriResponseScore' : bigint,
+  'departureTime' : Time,
   'date' : Time,
   'totalScore' : bigint,
   'teacherControlScore' : bigint,
@@ -33,6 +34,7 @@ export interface School {
 }
 export interface SchoolSummary { 'principal' : Principal, 'school' : School }
 export type Time = bigint;
+export interface UserProfile { 'name' : string, 'email' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -68,11 +70,14 @@ export interface _SERVICE {
   'getActiveSchoolsCount' : ActorMethod<[], bigint>,
   'getActiveSchoolsList' : ActorMethod<[], Array<SchoolSummary>>,
   'getAllDailyReportsForKepsek' : ActorMethod<[], Array<DailyReport>>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getDailyReport' : ActorMethod<[Principal, Time], [] | [DailyReport]>,
+  'getReportsForDate' : ActorMethod<[Time], Array<RankedDailyReport>>,
   'getSchool' : ActorMethod<[Principal], [] | [School]>,
-  'getTodayReports' : ActorMethod<[], Array<RankedDailyReport>>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'saveDailyReport' : ActorMethod<[DailyReport], undefined>,
   'saveSchool' : ActorMethod<[School], undefined>,
   'saveSchoolForPrincipal' : ActorMethod<[Principal, School], undefined>,

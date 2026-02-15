@@ -1,76 +1,70 @@
 {
   "kind": "build_request",
-  "title": "Allow central admin to edit schools from the admin schools list",
-  "priority": "normal",
+  "title": "Fix Admin Monitoring daily progress indicators not showing for any date",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-15",
-      "text": "Add an admin-only backend API that allows a central admin to update a School record for an arbitrary principal (i.e., edit a school entry from the admin school list without being the school owner). The API must accept (principal: Principal, school: School) and persist the school under the provided principal key.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "update, daftar sekolahnya bisa di edit oleh admin pusat"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Calling the new API as a non-admin traps/returns an authorization error.",
-        "Calling the new API as an admin updates the school data stored under the provided principal (not under the caller).",
-        "After updating a school to active=false, that school no longer appears in getActiveSchoolsList().",
-        "No new backend actors/services are introduced; changes remain within backend/main.mo (single-actor architecture)."
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "text": "Add a frontend edit flow in the Admin \"Active Schools\" table so an admin can edit school fields (School Name, Region, Principal Name, Active status) for a selected row and save changes back to the backend for that row’s Principal ID.",
+      "id": "REQ-32",
+      "text": "Fix the Admin Monitoring table so that the per-report daily progress indicators (Attendance, Class Control, Teacher Control, Parent/Guardian Response, Program & Problem Solving) reliably render for every returned report for any selected date.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-4"
         ],
         "quotes": [
-          "update, daftar sekolahnya bisa di edit oleh admin pusat"
+          "progres harian kepsek di tabel admin\nsemua tanggal\ntidak ada \n\nkerjakan sekarang"
         ]
       },
       "acceptanceCriteria": [
-        "Each school row in the Active Schools table provides an Edit action.",
-        "Clicking Edit opens a dialog/modal with a form prefilled with the selected school’s current values (including Active status).",
-        "Submitting the form calls the new admin-only backend API with the selected row’s Principal ID and the edited School object.",
-        "On successful save, the Active Schools list refreshes (React Query invalidation/refetch) and reflects the edited values.",
-        "If Active is toggled off and saved, the edited school disappears from the Active Schools list after refresh (because the list is active-only).",
-        "If the save fails due to authorization, show a clear error message in English indicating the user lacks permission."
+        "When the Admin Monitoring table shows at least one report row, the 'Daily Progress' cell in each row visibly renders five category indicators (not blank) for the selected date.",
+        "Daily progress indicators render consistently across all selected dates (today and historical dates) as long as `useGetReportsForDate(selectedDate)` returns data.",
+        "Daily progress indicator logic correctly interprets optional Candid fields (e.g., `attendancePhoto` as an opt value) so it does not mis-detect presence/absence due to JavaScript truthiness (e.g., `[]` vs `[value]`)."
       ]
     },
     {
-      "id": "REQ-17",
-      "text": "Extend the React Query layer to support updating a school for a specific principal from the admin UI, including cache invalidation for active schools list and active schools count.",
+      "id": "REQ-33",
+      "text": "Update the completion logic used by the Admin daily progress indicators so that it matches the actual stored DailyReport data and does not depend on fragile equality checks (e.g., `score === 20`), ensuring categories display as completed when the corresponding section is filled according to the report data.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-4"
         ],
         "quotes": [
-          "update, daftar sekolahnya bisa di edit oleh admin pusat"
+          "progres harian kepsek di tabel admin\nsemua tanggal\ntidak ada"
         ]
       },
       "acceptanceCriteria": [
-        "A new mutation hook exists for admin school updates by principal ID.",
-        "On success, the mutation invalidates/refetches at minimum: ['activeSchoolsList'] and ['activeSchoolsCount'] so the admin dashboard reflects the latest state.",
-        "The existing useSaveSchool() behavior remains unchanged for its current callers (no regressions to Kepsek profile setup or admin create flows)."
+        "For each category, the indicator is marked completed based on robust checks against the DailyReport fields (e.g., score > 0 and/or required data present), and not only `score === 20`.",
+        "Attendance completion correctly requires a real photo value (opt Some) rather than passing on an empty opt (None).",
+        "No runtime errors occur in `DailyProgressIndicators` when any DailyReport field is missing/undefined/optional from the generated types."
+      ]
+    },
+    {
+      "id": "REQ-34",
+      "text": "Ensure any user-facing text that is added or modified while implementing this fix is in English (including Admin Monitoring table descriptions, empty states, button labels, and status badges if touched).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Use English for any user-facing text in the build request."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Any edited strings in `frontend/src/components/admin/MonitoringTable.tsx`, `frontend/src/components/admin/DailyProgressIndicators.tsx`, and/or related components are in English.",
+        "If the empty state is shown (no reports for selected date), the message is in English."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor; implement changes in backend/main.mo.",
-    "Do not edit files under frontend/src/components/ui (read-only shadcn components).",
-    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui."
+    "Do not edit any files under frontend/src/components/ui or any paths listed in frontend.immutablePaths.",
+    "Maintain the existing single-actor backend architecture (all Motoko logic in backend/main.mo)."
   ],
   "nonGoals": [
-    "Building a separate 'All مدارس/All schools (including inactive)' admin page or backend query unless required to complete editing from the existing Active Schools list.",
-    "Adding third-party integrations, external databases, or non-Internet-Computer auth.",
-    "Implementing bulk edit/import/export for schools."
+    "Do not introduce new report categories or change scoring weights.",
+    "Do not add new authentication methods or roles.",
+    "Do not change backend persistence or the DailyReport schema as part of this fix unless it is strictly required to make progress indicators render."
   ],
   "imageRequirements": {
     "required": [],

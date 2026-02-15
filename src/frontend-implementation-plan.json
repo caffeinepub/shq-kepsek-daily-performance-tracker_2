@@ -1,45 +1,67 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin: Edit schools from Active Schools list",
+  "title": "Fix Admin Monitoring daily progress indicators rendering and completion logic",
   "requirements": [
     {
-      "id": "REQ-16",
-      "summary": "Add an edit action per row in the Admin Active Schools table that opens a prefilled modal form and saves changes for the selected school’s principal.",
+      "id": "REQ-32",
+      "summary": "Ensure Admin Monitoring table daily progress indicators render reliably for every report row across all selected dates.",
       "acceptanceCriteria": [
-        "Each school row in the Active Schools table provides an Edit action.",
-        "Clicking Edit opens a dialog/modal with a form prefilled with the selected school’s current values (including Active status).",
-        "Submitting the form calls the new admin-only backend API with the selected row’s Principal ID and the edited School object.",
-        "On successful save, the Active Schools list refreshes (React Query invalidation/refetch) and reflects the edited values.",
-        "If Active is toggled off and saved, the edited school disappears from the Active Schools list after refresh (because the list is active-only).",
-        "If the save fails due to authorization, show a clear error message in English indicating the user lacks permission."
+        "When the Admin Monitoring table shows at least one report row, the 'Daily Progress' cell in each row visibly renders five category indicators (not blank) for the selected date.",
+        "Daily progress indicators render consistently across all selected dates (today and historical dates) as long as `useGetReportsForDate(selectedDate)` returns data.",
+        "Daily progress indicator logic correctly interprets optional Candid fields (e.g., `attendancePhoto` as an opt value) so it does not mis-detect presence/absence due to JavaScript truthiness (e.g., `[]` vs `[value]`)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/admin/EditSchoolDialog.tsx",
-          "operation": "create",
-          "description": "Create an admin-only edit dialog component (modal) that renders a form for School Name, Region, Principal Name, and Active status; prefill values from the selected SchoolSummary row and submit via the new React Query mutation. Use existing shadcn-ui dialog/form building blocks by importing from the read-only ui components (do not modify them). Verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/admin/DailyProgressIndicators.tsx",
+          "operation": "modify",
+          "description": "Harden DailyProgressIndicators rendering against runtime shape differences in returned DailyReport data (e.g., optional/opt fields represented as undefined, null, [], [value], or {__kind__}), ensuring it always renders five indicators without throwing even when fields are missing."
         },
         {
-          "path": "frontend/src/components/admin/ActiveSchoolsSection.tsx",
+          "path": "frontend/src/components/admin/MonitoringTable.tsx",
           "operation": "modify",
-          "description": "Add an Actions column with an Edit button per row; wire the button to open the new EditSchoolDialog with the selected row’s principal text and current School values. On save success, close the dialog and rely on React Query invalidation/refetch to refresh the table; on authorization failure, surface an English error message indicating lack of permission. Verify the component's usage instructions before implementing."
+          "description": "Ensure the 'Daily Progress' table cell always renders the DailyProgressIndicators component for each returned report row (including for historical dates) and add defensive handling so a malformed report cannot blank the cell for the entire row."
         }
       ]
     },
     {
-      "id": "REQ-17",
-      "summary": "Extend React Query hooks to support admin updating a school for a specified principal and invalidate active schools list/count caches on success without changing existing saveSchool callers.",
+      "id": "REQ-33",
+      "summary": "Update daily progress completion logic to be robust and aligned with stored DailyReport data (avoid fragile equality checks and correctly handle optional photo presence).",
       "acceptanceCriteria": [
-        "A new mutation hook exists for admin school updates by principal ID.",
-        "On success, the mutation invalidates/refetches at minimum: ['activeSchoolsList'] and ['activeSchoolsCount'] so the admin dashboard reflects the latest state.",
-        "The existing useSaveSchool() behavior remains unchanged for its current callers (no regressions to Kepsek profile setup or admin create flows)."
+        "For each category, the indicator is marked completed based on robust checks against the DailyReport fields (e.g., score > 0 and/or required data present), and not only `score === 20`.",
+        "Attendance completion correctly requires a real photo value (opt Some) rather than passing on an empty opt (None).",
+        "No runtime errors occur in `DailyProgressIndicators` when any DailyReport field is missing/undefined/optional from the generated types."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/admin/DailyProgressIndicators.tsx",
           "operation": "modify",
-          "description": "Add a new React Query mutation hook for admin updates that calls the backend capability to save a School for an arbitrary principal (parse principal from the selected row’s Principal ID string as needed) and on success invalidates ['activeSchoolsList'] and ['activeSchoolsCount']; keep existing useSaveSchool() unchanged."
+          "description": "Replace fragile completion checks with robust, schema-aligned checks: safely coerce bigint-like score values to numbers, treat completion as score > 0 (or equivalent non-zero), and require an actual unwrapped attendancePhoto value for Attendance completion (opt Some), avoiding JS truthiness pitfalls like [] being truthy."
+        },
+        {
+          "path": "frontend/src/components/admin/ReportDetailView.tsx",
+          "operation": "modify",
+          "description": "Make attendance photo rendering resilient to optional/opt representations by unwrapping the value before calling getDirectURL(), preventing runtime errors when attendancePhoto is present as an opt container rather than a direct ExternalBlob."
+        }
+      ]
+    },
+    {
+      "id": "REQ-34",
+      "summary": "Ensure any user-facing text modified during the fix is in English.",
+      "acceptanceCriteria": [
+        "Any edited strings in `frontend/src/components/admin/MonitoringTable.tsx`, `frontend/src/components/admin/DailyProgressIndicators.tsx`, and/or related components are in English.",
+        "If the empty state is shown (no reports for selected date), the message is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/admin/MonitoringTable.tsx",
+          "operation": "modify",
+          "description": "Convert modified user-facing strings to English (table title/description, empty state message, action button label, and any related labels touched while fixing rendering)."
+        },
+        {
+          "path": "frontend/src/components/StatusPills.tsx",
+          "operation": "modify",
+          "description": "If the submission status badge text is touched as part of the Admin Monitoring table experience, ensure the displayed strings are in English (e.g., submitted/not submitted) while keeping styling and API unchanged."
         }
       ]
     }
