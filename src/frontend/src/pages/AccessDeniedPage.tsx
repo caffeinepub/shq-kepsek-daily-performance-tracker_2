@@ -1,20 +1,48 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShieldAlert } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ShieldAlert, Copy, RefreshCw } from 'lucide-react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { useState } from 'react';
 
 interface AccessDeniedPageProps {
   message?: string;
 }
 
 export default function AccessDeniedPage({ message }: AccessDeniedPageProps) {
-  const { clear } = useInternetIdentity();
+  const { clear, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const principalId = identity?.getPrincipal().toString() || '';
 
   const handleLogout = async () => {
     await clear();
     queryClient.clear();
+  };
+
+  const handleCopyPrincipalId = () => {
+    if (principalId) {
+      navigator.clipboard.writeText(principalId);
+      toast.success('Principal ID copied to clipboard');
+    }
+  };
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    try {
+      // Invalidate and refetch the caller role query
+      await queryClient.invalidateQueries({ queryKey: ['callerRole'] });
+      await queryClient.refetchQueries({ queryKey: ['callerRole'] });
+      toast.success('Role check refreshed');
+    } catch (error) {
+      toast.error('Failed to refresh role. Please try again.');
+    } finally {
+      setIsRetrying(false);
+    }
   };
 
   return (
@@ -39,9 +67,55 @@ export default function AccessDeniedPage({ message }: AccessDeniedPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={handleLogout} variant="outline" className="w-full">
-              Sign Out
-            </Button>
+            {principalId && (
+              <div className="space-y-2">
+                <Label htmlFor="principalId">Your Principal ID</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="principalId"
+                    value={principalId}
+                    readOnly
+                    className="font-mono text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopyPrincipalId}
+                    title="Copy Principal ID"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Share this Principal ID with an administrator to get access. Once they register your school profile, click Retry below.
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={handleRetry}
+                variant="default"
+                className="w-full"
+                disabled={isRetrying}
+              >
+                {isRetrying ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Checking...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Retry
+                  </>
+                )}
+              </Button>
+              <Button onClick={handleLogout} variant="outline" className="w-full">
+                Sign Out
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

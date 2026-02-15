@@ -1,67 +1,52 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Admin Monitoring daily progress indicators rendering and completion logic",
+  "title": "Auto-assign role messaging and smoother Access Denied onboarding for principals",
   "requirements": [
     {
-      "id": "REQ-32",
-      "summary": "Ensure Admin Monitoring table daily progress indicators render reliably for every report row across all selected dates.",
+      "id": "REQ-2",
+      "summary": "Enhance Access Denied onboarding for guest/no-role users with Principal ID copy, clear instructions, and a Retry role refetch action.",
       "acceptanceCriteria": [
-        "When the Admin Monitoring table shows at least one report row, the 'Daily Progress' cell in each row visibly renders five category indicators (not blank) for the selected date.",
-        "Daily progress indicators render consistently across all selected dates (today and historical dates) as long as `useGetReportsForDate(selectedDate)` returns data.",
-        "Daily progress indicator logic correctly interprets optional Candid fields (e.g., `attendancePhoto` as an opt value) so it does not mis-detect presence/absence due to JavaScript truthiness (e.g., `[]` vs `[value]`)."
+        "When a logged-in user has role=guest or no role, the Access Denied view displays their Principal ID in a read-only field and includes a Copy button that confirms success via toast.",
+        "The Access Denied view includes a Retry button that triggers a role refetch and, if the role becomes valid, routes the user into the correct dashboard without logout.",
+        "All user-facing text added/changed in this flow is in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/admin/DailyProgressIndicators.tsx",
+          "path": "frontend/src/pages/AccessDeniedPage.tsx",
           "operation": "modify",
-          "description": "Harden DailyProgressIndicators rendering against runtime shape differences in returned DailyReport data (e.g., optional/opt fields represented as undefined, null, [], [value], or {__kind__}), ensuring it always renders five indicators without throwing even when fields are missing."
+          "description": "Update the Access Denied view UI to: (1) display the logged-in user's Principal ID (read-only) using Internet Identity, (2) add a one-click Copy action that uses the existing toast system to confirm success, (3) add clear next-step instructions in English for contacting an admin and sharing the Principal ID, and (4) add a Retry button that triggers a role refetch without logging out. Use existing shadcn/ui components already imported in the project for consistent styling; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/admin/MonitoringTable.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Ensure the 'Daily Progress' table cell always renders the DailyProgressIndicators component for each returned report row (including for historical dates) and add defensive handling so a malformed report cannot blank the cell for the entire row."
+          "description": "Add a small helper hook or exported utility to force-refresh the cached caller role (e.g., via React Query's queryClient refetch/invalidate for the caller role query key), so the Access Denied screen can reliably retry without requiring logout and without changing backend behavior."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the improved AccessDeniedPage behavior into the app's role-based routing: ensure the role query can be retried from the Access Denied state and that a successful role refetch causes the app to render the correct dashboard automatically (admin or user) without a sign-out."
         }
       ]
     },
     {
-      "id": "REQ-33",
-      "summary": "Update daily progress completion logic to be robust and aligned with stored DailyReport data (avoid fragile equality checks and correctly handle optional photo presence).",
+      "id": "REQ-3",
+      "summary": "Update admin management copy and Kepsek registration form labels/instructions to English and reflect automatic role assignment upon saving a school profile.",
       "acceptanceCriteria": [
-        "For each category, the indicator is marked completed based on robust checks against the DailyReport fields (e.g., score > 0 and/or required data present), and not only `score === 20`.",
-        "Attendance completion correctly requires a real photo value (opt Some) rather than passing on an empty opt (None).",
-        "No runtime errors occur in `DailyProgressIndicators` when any DailyReport field is missing/undefined/optional from the generated types."
+        "AdminKepsekManagementPage no longer instructs admins to separately “assign the user role via backend”; it states that registering the school profile will assign access automatically.",
+        "KepsekProfileForm field labels and helper text are in English (e.g., “Principal ID”, not mixed-language labels).",
+        "Successful registration messaging remains clear and in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/admin/DailyProgressIndicators.tsx",
+          "path": "frontend/src/pages/AdminKepsekManagementPage.tsx",
           "operation": "modify",
-          "description": "Replace fragile completion checks with robust, schema-aligned checks: safely coerce bigint-like score values to numbers, treat completion as score > 0 (or equivalent non-zero), and require an actual unwrapped attendancePhoto value for Attendance completion (opt Some), avoiding JS truthiness pitfalls like [] being truthy."
+          "description": "Replace the current instructional alert text with English guidance that reflects the new behavior: admins should only collect the principal's Principal ID (after they log in once) and saving the school profile will automatically grant Kepsek/user access—remove any mention of manually assigning roles. Keep UI structure intact using existing shadcn/ui components; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/admin/ReportDetailView.tsx",
+          "path": "frontend/src/components/admin/KepsekProfileForm.tsx",
           "operation": "modify",
-          "description": "Make attendance photo rendering resilient to optional/opt representations by unwrapping the value before calling getDirectURL(), preventing runtime errors when attendancePhoto is present as an opt container rather than a direct ExternalBlob."
-        }
-      ]
-    },
-    {
-      "id": "REQ-34",
-      "summary": "Ensure any user-facing text modified during the fix is in English.",
-      "acceptanceCriteria": [
-        "Any edited strings in `frontend/src/components/admin/MonitoringTable.tsx`, `frontend/src/components/admin/DailyProgressIndicators.tsx`, and/or related components are in English.",
-        "If the empty state is shown (no reports for selected date), the message is in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/admin/MonitoringTable.tsx",
-          "operation": "modify",
-          "description": "Convert modified user-facing strings to English (table title/description, empty state message, action button label, and any related labels touched while fixing rendering)."
-        },
-        {
-          "path": "frontend/src/components/StatusPills.tsx",
-          "operation": "modify",
-          "description": "If the submission status badge text is touched as part of the Admin Monitoring table experience, ensure the displayed strings are in English (e.g., submitted/not submitted) while keeping styling and API unchanged."
+          "description": "Update KepsekProfileForm labels, placeholders, helper text, and validation/toast messages to be fully English and to explicitly state that saving the school profile will also grant Kepsek/user access automatically. Ensure the success toast remains clear and in English. Use existing shadcn/ui form components as currently used; verify the component's usage instructions before implementing."
         }
       ]
     }

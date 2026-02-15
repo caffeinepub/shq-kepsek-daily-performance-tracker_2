@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGetReportsForDate } from '../../hooks/useQueries';
+import { useGetDailyMonitoringRows } from '../../hooks/useQueries';
 import {
   Table,
   TableBody,
@@ -15,21 +15,23 @@ import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
 import ReportDetailView from './ReportDetailView';
 import DailyProgressIndicators from './DailyProgressIndicators';
-import type { RankedDailyReport } from '../../backend';
+import type { DailyMonitoringRow } from '../../backend';
+import { Badge } from '@/components/ui/badge';
+import { dashboardId } from '../../localization/dashboardId';
 
 interface MonitoringTableProps {
   selectedDate: Date;
 }
 
 export default function MonitoringTable({ selectedDate }: MonitoringTableProps) {
-  const { data: reports, isLoading } = useGetReportsForDate(selectedDate);
-  const [selectedReport, setSelectedReport] = useState<RankedDailyReport | null>(null);
+  const { data: monitoringRows, isLoading } = useGetDailyMonitoringRows(selectedDate);
+  const [selectedRow, setSelectedRow] = useState<DailyMonitoringRow | null>(null);
 
   if (isLoading) {
     return (
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Principal Monitoring</CardTitle>
+          <CardTitle>{dashboardId.admin.monitoring.title}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -42,84 +44,111 @@ export default function MonitoringTable({ selectedDate }: MonitoringTableProps) 
     );
   }
 
-  const sortedReports = [...(reports || [])].sort((a, b) => {
-    const scoreA = Number(a.dailyReport.totalScore);
-    const scoreB = Number(b.dailyReport.totalScore);
-    if (scoreB !== scoreA) return scoreB - scoreA;
-    return a.kepsek.toString().localeCompare(b.kepsek.toString());
+  // Sort: submitted reports by score (highest first), then not-submitted rows
+  const sortedRows = [...(monitoringRows || [])].sort((a, b) => {
+    const hasReportA = !!a.report;
+    const hasReportB = !!b.report;
+
+    // Both have reports: sort by score descending
+    if (hasReportA && hasReportB) {
+      const scoreA = Number(a.report!.totalScore);
+      const scoreB = Number(b.report!.totalScore);
+      if (scoreB !== scoreA) return scoreB - scoreA;
+    }
+
+    // One has report, one doesn't: submitted first
+    if (hasReportA && !hasReportB) return -1;
+    if (!hasReportA && hasReportB) return 1;
+
+    // Both don't have reports: sort by school name
+    return a.school.name.localeCompare(b.school.name);
   });
 
   return (
     <>
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Principal Monitoring</CardTitle>
+          <CardTitle>{dashboardId.admin.monitoring.title}</CardTitle>
           <CardDescription>
-            List of school principals and their daily scores (sorted by highest score)
+            {dashboardId.admin.monitoring.description}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {sortedReports.length === 0 ? (
+          {sortedRows.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No reports available for this date
+              {dashboardId.admin.monitoring.noSchools}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-16">Rank</TableHead>
-                    <TableHead>Principal ID</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Daily Progress</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="w-16">{dashboardId.admin.monitoring.rank}</TableHead>
+                    <TableHead>{dashboardId.admin.monitoring.schoolName}</TableHead>
+                    <TableHead>{dashboardId.admin.monitoring.principalName}</TableHead>
+                    <TableHead>{dashboardId.admin.monitoring.status}</TableHead>
+                    <TableHead>{dashboardId.admin.monitoring.dailyProgress}</TableHead>
+                    <TableHead>{dashboardId.admin.monitoring.score}</TableHead>
+                    <TableHead className="text-right">{dashboardId.common.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedReports.map((report, index) => {
-                    try {
-                      return (
-                        <TableRow key={report.kepsek.toString()}>
-                          <TableCell className="font-bold text-lg">#{index + 1}</TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {report.kepsek.toString().slice(0, 20)}...
-                          </TableCell>
-                          <TableCell>
+                  {sortedRows.map((row, index) => {
+                    const hasReport = !!row.report;
+                    const score = hasReport ? Number(row.report!.totalScore) : 0;
+
+                    return (
+                      <TableRow key={row.principal.toString()}>
+                        <TableCell className="font-medium">
+                          {hasReport ? (
+                            <Badge variant="outline" className="font-bold">
+                              #{index + 1}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium">{row.school.name}</TableCell>
+                        <TableCell>{row.school.principalName}</TableCell>
+                        <TableCell>
+                          {hasReport ? (
                             <SubmissionStatusBadge submitted={true} />
-                          </TableCell>
-                          <TableCell>
-                            {report.dailyReport ? (
-                              <DailyProgressIndicators report={report.dailyReport} />
-                            ) : (
-                              <span className="text-xs text-muted-foreground">No data</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <ScoreBadge score={Number(report.dailyReport.totalScore)} />
-                          </TableCell>
-                          <TableCell className="text-right">
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                              {dashboardId.admin.monitoring.notSubmitted}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {hasReport ? (
+                            <DailyProgressIndicators report={row.report!} />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {hasReport ? (
+                            <ScoreBadge score={score} />
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {hasReport ? (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setSelectedReport(report)}
+                              onClick={() => setSelectedRow(row)}
                             >
                               <Eye className="h-4 w-4 mr-1" />
-                              View
+                              {dashboardId.admin.monitoring.view}
                             </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    } catch (error) {
-                      console.error('Error rendering report row:', error);
-                      return (
-                        <TableRow key={report.kepsek.toString()}>
-                          <TableCell colSpan={6} className="text-center text-xs text-muted-foreground">
-                            Error displaying report for {report.kepsek.toString().slice(0, 20)}...
-                          </TableCell>
-                        </TableRow>
-                      );
-                    }
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
                   })}
                 </TableBody>
               </Table>
@@ -128,10 +157,10 @@ export default function MonitoringTable({ selectedDate }: MonitoringTableProps) 
         </CardContent>
       </Card>
 
-      {selectedReport && (
+      {selectedRow && (
         <ReportDetailView
-          report={selectedReport}
-          onClose={() => setSelectedReport(null)}
+          row={selectedRow}
+          onClose={() => setSelectedRow(null)}
         />
       )}
     </>

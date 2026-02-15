@@ -1,65 +1,63 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T10:44:37.986Z",
+  "generatedAt": "2026-02-15T13:52:56.112Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 3,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-32",
-        "summary": "Fix the Admin Monitoring table so that the per-report daily progress indicators (Attendance, Class Control, Teacher Control, Parent/Guardian Response, Program & Problem Solving) reliably render for every returned report for any selected date.",
+        "id": "REQ-1",
+        "summary": "Update the backend so that when an admin registers or updates a school profile for a principal, the target principal is automatically granted the Kepsek/user role (so they no longer see “Access Denied” after logging in).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Improve the guest/no-role experience so it is not cumbersome: on the Access Denied screen, show the logged-in user’s Principal ID with a one-click “Copy” action, provide clear next-step instructions, and add a “Retry” action that refetches the caller role without requiring the user to sign out.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/admin/DailyProgressIndicators.tsx",
-          "frontend/src/components/admin/MonitoringTable.tsx"
+          "frontend/src/pages/AccessDeniedPage.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/admin/DailyProgressIndicators.tsx",
-          "frontend/src/components/admin/MonitoringTable.tsx"
+          "frontend/src/pages/AccessDeniedPage.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/App.tsx"
         ]
       },
       {
-        "id": "REQ-33",
-        "summary": "Update the completion logic used by the Admin daily progress indicators so that it matches the actual stored DailyReport data and does not depend on fragile equality checks (e.g., `score === 20`), ensuring categories display as completed when the corresponding section is filled according to the report data.",
+        "id": "REQ-3",
+        "summary": "Remove the extra manual step implied in the admin UI: update the Admin “Manage School Principals” page and the Kepsek registration form so the instructions and labels are in English and reflect that saving a school profile will also assign the Kepsek/user role automatically.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/admin/DailyProgressIndicators.tsx",
-          "frontend/src/components/admin/ReportDetailView.tsx"
+          "frontend/src/pages/AdminKepsekManagementPage.tsx",
+          "frontend/src/components/admin/KepsekProfileForm.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/admin/DailyProgressIndicators.tsx",
-          "frontend/src/components/admin/ReportDetailView.tsx"
-        ]
-      },
-      {
-        "id": "REQ-34",
-        "summary": "Ensure any user-facing text that is added or modified while implementing this fix is in English (including Admin Monitoring table descriptions, empty states, button labels, and status badges if touched).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/admin/MonitoringTable.tsx",
-          "frontend/src/components/StatusPills.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/admin/MonitoringTable.tsx",
-          "frontend/src/components/StatusPills.tsx"
+          "frontend/src/pages/AdminKepsekManagementPage.tsx",
+          "frontend/src/components/admin/KepsekProfileForm.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/StatusPills.tsx",
-    "frontend/src/components/admin/DailyProgressIndicators.tsx",
-    "frontend/src/components/admin/MonitoringTable.tsx",
-    "frontend/src/components/admin/ReportDetailView.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/components/admin/KepsekProfileForm.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AccessDeniedPage.tsx",
+    "frontend/src/pages/AdminKepsekManagementPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

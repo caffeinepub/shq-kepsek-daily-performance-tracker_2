@@ -6,115 +6,118 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { CategoryScoreBadge, ScoreBadge } from '../StatusPills';
-import type { RankedDailyReport } from '../../backend';
+import { getOptionalBlobUrl } from '../../utils/candidOption';
+import type { DailyMonitoringRow } from '../../backend';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { dashboardId } from '../../localization/dashboardId';
 
 interface ReportDetailViewProps {
-  report: RankedDailyReport;
+  row: DailyMonitoringRow;
   onClose: () => void;
 }
 
 function formatTime(nanos: bigint): string {
-  if (nanos === BigInt(0)) return 'Not provided';
-  const totalMs = Number(nanos / BigInt(1_000_000));
-  const date = new Date(totalMs);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+  if (nanos === BigInt(0)) return dashboardId.common.notProvided;
+  try {
+    const totalMs = Number(nanos / BigInt(1_000_000));
+    const date = new Date(totalMs);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  } catch {
+    return dashboardId.common.notProvided;
+  }
 }
 
-export default function ReportDetailView({ report, onClose }: ReportDetailViewProps) {
-  const { dailyReport, kepsek } = report;
+export default function ReportDetailView({ row, onClose }: ReportDetailViewProps) {
+  // Only render if report exists
+  if (!row.report) {
+    return null;
+  }
 
-  // Helper to safely get attendance photo URL
-  const getAttendancePhotoUrl = (): string | null => {
-    try {
-      if (!dailyReport.attendancePhoto) return null;
-      if (typeof dailyReport.attendancePhoto === 'object' && 'getDirectURL' in dailyReport.attendancePhoto) {
-        return dailyReport.attendancePhoto.getDirectURL();
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  };
+  const { report, principal, school } = row;
 
-  const photoUrl = getAttendancePhotoUrl();
+  // Safely get attendance photo URL using the utility
+  const photoUrl = getOptionalBlobUrl(report.attendancePhoto);
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>Daily Report Details</span>
-            <ScoreBadge score={Number(dailyReport.totalScore)} className="text-lg" />
+            <span>{dashboardId.admin.reportDetail.title}</span>
+            <ScoreBadge score={Number(report.totalScore)} className="text-lg" />
           </DialogTitle>
-          <DialogDescription className="font-mono text-xs">
-            Principal: {kepsek.toString()}
+          <DialogDescription>
+            <div className="space-y-1">
+              <div className="font-semibold text-foreground">{school.name}</div>
+              <div className="text-sm">{school.principalName}</div>
+              <div className="font-mono text-xs">{principal.toString()}</div>
+            </div>
           </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh] pr-4">
           <div className="space-y-4">
             {/* Attendance Photo */}
-            {photoUrl && (
+            {photoUrl ? (
               <div>
-                <p className="text-sm font-semibold mb-2">Attendance Photo:</p>
+                <p className="text-sm font-semibold mb-2">{dashboardId.admin.reportDetail.attendancePhoto}</p>
                 <img
                   src={photoUrl}
                   alt="Attendance"
                   className="w-full h-64 object-cover rounded-lg border"
                 />
               </div>
+            ) : (
+              <div>
+                <p className="text-sm font-semibold mb-2">{dashboardId.admin.reportDetail.attendancePhoto}</p>
+                <div className="w-full h-32 flex items-center justify-center bg-muted/50 rounded-lg border border-dashed">
+                  <p className="text-xs text-muted-foreground">{dashboardId.admin.reportDetail.noPhoto}</p>
+                </div>
+              </div>
             )}
 
             {/* Time Information */}
             <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Arrival Time</p>
-                <p className="text-sm font-semibold">{formatTime(dailyReport.date)}</p>
+                <p className="text-xs text-muted-foreground mb-1">{dashboardId.admin.reportDetail.arrivalTime}</p>
+                <p className="text-sm font-semibold">{formatTime(report.date)}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Departure Time</p>
-                <p className="text-sm font-semibold">{formatTime(dailyReport.departureTime)}</p>
+                <p className="text-xs text-muted-foreground mb-1">{dashboardId.admin.reportDetail.departureTime}</p>
+                <p className="text-sm font-semibold">{formatTime(report.departureTime)}</p>
               </div>
             </div>
 
             {/* Score Breakdown */}
             <div className="space-y-2">
-              <p className="text-sm font-semibold mb-3">Score Breakdown:</p>
+              <p className="text-sm font-semibold mb-3">{dashboardId.admin.reportDetail.scoreBreakdown}</p>
               <CategoryScoreBadge
-                score={Number(dailyReport.attendanceScore)}
+                score={Number(report.attendanceScore)}
                 maxScore={20}
-                label="Attendance + Photo"
+                label={dashboardId.admin.reportDetail.categories.attendance}
               />
               <CategoryScoreBadge
-                score={Number(dailyReport.classControlScore)}
+                score={Number(report.classControlScore)}
                 maxScore={20}
-                label="Class Control"
+                label={dashboardId.admin.reportDetail.categories.classControl}
               />
               <CategoryScoreBadge
-                score={Number(dailyReport.teacherControlScore)}
+                score={Number(report.teacherControlScore)}
                 maxScore={20}
-                label="Teacher Control"
+                label={dashboardId.admin.reportDetail.categories.teacherControl}
               />
               <CategoryScoreBadge
-                score={Number(dailyReport.waliSantriResponseScore)}
+                score={Number(report.waliSantriResponseScore)}
                 maxScore={20}
-                label="Parent Response"
+                label={dashboardId.admin.reportDetail.categories.parentResponse}
               />
               <CategoryScoreBadge
-                score={Number(dailyReport.programProblemSolvingScore)}
+                score={Number(report.programProblemSolvingScore)}
                 maxScore={20}
-                label="Program & Problem Solving"
+                label={dashboardId.admin.reportDetail.categories.programSolving}
               />
-            </div>
-
-            {/* Date Info */}
-            <div className="pt-4 border-t">
-              <p className="text-xs text-muted-foreground">
-                Date: {new Date(Number(dailyReport.date) / 1_000_000).toLocaleDateString('en-US')}
-              </p>
             </div>
           </div>
         </ScrollArea>

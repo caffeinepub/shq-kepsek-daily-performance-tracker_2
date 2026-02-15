@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { hasOptionalBlob } from '../../utils/candidOption';
 import type { DailyReport } from '../../backend';
 
 interface DailyProgressIndicatorsProps {
@@ -15,25 +16,26 @@ interface CategoryStatus {
 }
 
 export default function DailyProgressIndicators({ report, className }: DailyProgressIndicatorsProps) {
-  // Helper to safely check if attendance photo exists
-  const hasAttendancePhoto = (): boolean => {
+  // Helper to safely convert score to number
+  const toScore = (value: bigint | number | undefined | null): number => {
+    if (value === undefined || value === null) return 0;
     try {
-      if (!report.attendancePhoto) return false;
-      // Check if it's a valid ExternalBlob with getDirectURL method
-      if (typeof report.attendancePhoto === 'object' && 'getDirectURL' in report.attendancePhoto) {
-        return true;
-      }
-      return false;
+      return Number(value);
     } catch {
-      return false;
+      return 0;
     }
   };
 
-  // Helper to safely convert score to number
-  const toScore = (value: bigint | number | undefined): number => {
-    if (value === undefined || value === null) return 0;
-    return Number(value);
-  };
+  // Check if report has valid data
+  const hasValidData = report && typeof report === 'object';
+
+  if (!hasValidData) {
+    return (
+      <div className={cn('flex flex-wrap gap-1.5', className)}>
+        <span className="text-xs text-muted-foreground">No progress data</span>
+      </div>
+    );
+  }
 
   // Determine completion status for each category
   // A category is complete if score > 0 (indicating data was submitted)
@@ -41,7 +43,7 @@ export default function DailyProgressIndicators({ report, className }: DailyProg
     {
       label: 'Attendance',
       shortLabel: 'Att',
-      completed: toScore(report.attendanceScore) > 0 && hasAttendancePhoto(),
+      completed: toScore(report.attendanceScore) > 0 && hasOptionalBlob(report.attendancePhoto),
     },
     {
       label: 'Class Control',

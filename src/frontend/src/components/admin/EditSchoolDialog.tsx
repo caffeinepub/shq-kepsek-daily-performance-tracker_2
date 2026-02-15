@@ -15,6 +15,7 @@ import { useUpdateSchoolForPrincipal } from '../../hooks/useQueries';
 import { toast } from 'sonner';
 import type { School, SchoolSummary } from '../../backend';
 import { Principal } from '@dfinity/principal';
+import { dashboardId } from '../../localization/dashboardId';
 
 interface EditSchoolDialogProps {
   open: boolean;
@@ -45,7 +46,7 @@ export default function EditSchoolDialog({ open, onOpenChange, schoolSummary }: 
     if (!schoolSummary) return;
 
     if (!schoolName.trim() || !region.trim() || !principalName.trim()) {
-      toast.error('All fields are required');
+      toast.error(dashboardId.admin.editDialog.allFieldsRequired);
       return;
     }
 
@@ -61,13 +62,13 @@ export default function EditSchoolDialog({ open, onOpenChange, schoolSummary }: 
         principal: schoolSummary.principal,
         school: updatedSchool,
       });
-      toast.success('School updated successfully!');
+      toast.success(dashboardId.admin.editDialog.successUpdate);
       onOpenChange(false);
     } catch (error: any) {
       if (error.message && error.message.includes('Unauthorized')) {
-        toast.error('You do not have permission to update schools.');
+        toast.error(dashboardId.admin.editDialog.errorPermission);
       } else {
-        toast.error(error.message || 'Failed to update school');
+        toast.error(error.message || dashboardId.admin.editDialog.errorGeneral);
       }
     }
   };
@@ -76,15 +77,15 @@ export default function EditSchoolDialog({ open, onOpenChange, schoolSummary }: 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit School</DialogTitle>
+          <DialogTitle>{dashboardId.admin.editDialog.title}</DialogTitle>
           <DialogDescription>
-            Update the school information. Changes will be reflected immediately.
+            {dashboardId.admin.editDialog.description}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-schoolName">School Name *</Label>
+              <Label htmlFor="edit-schoolName">{dashboardId.admin.editDialog.schoolName} *</Label>
               <Input
                 id="edit-schoolName"
                 value={schoolName}
@@ -95,7 +96,7 @@ export default function EditSchoolDialog({ open, onOpenChange, schoolSummary }: 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-region">Region *</Label>
+              <Label htmlFor="edit-region">{dashboardId.admin.editDialog.region} *</Label>
               <Input
                 id="edit-region"
                 value={region}
@@ -106,7 +107,7 @@ export default function EditSchoolDialog({ open, onOpenChange, schoolSummary }: 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-principalName">Principal Name *</Label>
+              <Label htmlFor="edit-principalName">{dashboardId.admin.editDialog.principalName} *</Label>
               <Input
                 id="edit-principalName"
                 value={principalName}
@@ -117,13 +118,13 @@ export default function EditSchoolDialog({ open, onOpenChange, schoolSummary }: 
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="edit-active">Active Status</Label>
+              <Label htmlFor="edit-active">{dashboardId.admin.editDialog.activeStatus}</Label>
               <Switch id="edit-active" checked={active} onCheckedChange={setActive} />
             </div>
 
             {schoolSummary && (
               <div className="text-xs text-muted-foreground pt-2 border-t">
-                <p className="font-medium mb-1">Principal ID:</p>
+                <p className="font-medium mb-1">{dashboardId.admin.editDialog.principalIdLabel}</p>
                 <p className="font-mono break-all">{schoolSummary.principal.toString()}</p>
               </div>
             )}
@@ -136,10 +137,10 @@ export default function EditSchoolDialog({ open, onOpenChange, schoolSummary }: 
               onClick={() => onOpenChange(false)}
               disabled={updateSchool.isPending}
             >
-              Cancel
+              {dashboardId.common.cancel}
             </Button>
             <Button type="submit" disabled={updateSchool.isPending}>
-              {updateSchool.isPending ? 'Saving...' : 'Save Changes'}
+              {updateSchool.isPending ? dashboardId.common.saving : dashboardId.admin.editDialog.saveChanges}
             </Button>
           </DialogFooter>
         </form>

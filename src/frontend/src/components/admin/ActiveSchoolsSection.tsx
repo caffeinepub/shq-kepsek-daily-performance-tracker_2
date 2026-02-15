@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Search, School, AlertCircle, Pencil } from 'lucide-react';
 import EditSchoolDialog from './EditSchoolDialog';
 import type { SchoolSummary } from '../../backend';
+import { dashboardId } from '../../localization/dashboardId';
 
 export default function ActiveSchoolsSection() {
   const { data: schools = [], isLoading, error } = useGetActiveSchoolsList();
@@ -44,10 +45,10 @@ export default function ActiveSchoolsSection() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <School className="h-5 w-5 text-primary" />
-            <CardTitle>Active Schools</CardTitle>
+            <CardTitle>{dashboardId.admin.schools.title}</CardTitle>
           </div>
           <CardDescription>
-            List of all active schools in the system
+            {dashboardId.admin.schools.description}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -55,7 +56,7 @@ export default function ActiveSchoolsSection() {
           <div className="mb-4 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by school name, region, or principal name..."
+              placeholder={dashboardId.admin.schools.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -68,7 +69,7 @@ export default function ActiveSchoolsSection() {
               <Skeleton className="h-4 w-32" />
             ) : (
               <span>
-                Showing {filteredSchools.length} of {schools.length} school{schools.length !== 1 ? 's' : ''}
+                {dashboardId.admin.schools.showing(filteredSchools.length, schools.length)}
               </span>
             )}
           </div>
@@ -79,8 +80,8 @@ export default function ActiveSchoolsSection() {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {error instanceof Error && error.message.includes('Unauthorized')
-                  ? 'You do not have permission to view the schools list.'
-                  : 'Failed to load schools list. Please try again later.'}
+                  ? dashboardId.admin.schools.errorPermission
+                  : dashboardId.admin.schools.errorGeneral}
               </AlertDescription>
             </Alert>
           )}
@@ -99,7 +100,7 @@ export default function ActiveSchoolsSection() {
             <div className="text-center py-12">
               <School className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
               <p className="text-muted-foreground">
-                {searchQuery.trim() ? 'No schools found matching your search.' : 'No active schools yet.'}
+                {searchQuery.trim() ? dashboardId.admin.schools.noResults : dashboardId.admin.schools.noSchools}
               </p>
             </div>
           )}
@@ -110,11 +111,11 @@ export default function ActiveSchoolsSection() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>School Name</TableHead>
-                    <TableHead>Region</TableHead>
-                    <TableHead>Principal Name</TableHead>
-                    <TableHead>Principal ID</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{dashboardId.admin.monitoring.schoolName}</TableHead>
+                    <TableHead>{dashboardId.admin.schools.region}</TableHead>
+                    <TableHead>{dashboardId.admin.monitoring.principalName}</TableHead>
+                    <TableHead>{dashboardId.admin.schools.principalId}</TableHead>
+                    <TableHead className="text-right">{dashboardId.common.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -134,7 +135,7 @@ export default function ActiveSchoolsSection() {
                           className="h-8 w-8 p-0"
                         >
                           <Pencil className="h-4 w-4" />
-                          <span className="sr-only">Edit school</span>
+                          <span className="sr-only">{dashboardId.admin.schools.editSchool}</span>
                         </Button>
                       </TableCell>
                     </TableRow>

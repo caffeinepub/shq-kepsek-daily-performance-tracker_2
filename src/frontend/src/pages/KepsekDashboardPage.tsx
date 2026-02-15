@@ -11,6 +11,7 @@ import TodaySubmissionSummary from '../components/kepsek/TodaySubmissionSummary'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { dashboardId } from '../localization/dashboardId';
 
 export default function KepsekDashboardPage() {
   const { data: school, isLoading: schoolLoading, error: schoolError, refetch: refetchSchool } = useGetCallerSchool();
@@ -24,7 +25,7 @@ export default function KepsekDashboardPage() {
   const handleCopyPrincipalId = () => {
     if (principalId) {
       navigator.clipboard.writeText(principalId);
-      toast.success('Principal ID copied to clipboard!');
+      toast.success(dashboardId.kepsek.missingSchool.copiedToClipboard);
     }
   };
 
@@ -40,16 +41,16 @@ export default function KepsekDashboardPage() {
               <div className="flex justify-center mb-4">
                 <AlertCircle className="h-12 w-12 text-red-600" />
               </div>
-              <CardTitle className="text-2xl">Error Loading School Profile</CardTitle>
+              <CardTitle className="text-2xl">{dashboardId.kepsek.error.loadingProfile}</CardTitle>
               <CardDescription>
-                There was a problem loading your school information
+                {dashboardId.kepsek.error.loadingDescription}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  {schoolError instanceof Error ? schoolError.message : 'Failed to load school profile'}
+                  {schoolError instanceof Error ? schoolError.message : 'Gagal memuat profil sekolah'}
                 </AlertDescription>
               </Alert>
               
@@ -59,7 +60,7 @@ export default function KepsekDashboardPage() {
                 variant="outline"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Retry Loading
+                {dashboardId.kepsek.error.retryLoading}
               </Button>
             </CardContent>
           </Card>
@@ -68,7 +69,7 @@ export default function KepsekDashboardPage() {
         <footer className="mt-12 py-6 border-t bg-white/50 dark:bg-gray-900/50">
           <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
             <p>
-              Built with love using{' '}
+              {dashboardId.footer.builtWith}{' '}
               <a
                 href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
                 target="_blank"
@@ -78,7 +79,7 @@ export default function KepsekDashboardPage() {
                 caffeine.ai
               </a>
             </p>
-            <p className="mt-1">© {new Date().getFullYear()} SHQ Kepsek Tracker</p>
+            <p className="mt-1">{dashboardId.footer.copyright(new Date().getFullYear())}</p>
           </div>
         </footer>
       </div>
@@ -97,22 +98,21 @@ export default function KepsekDashboardPage() {
               <div className="flex justify-center mb-4">
                 <Info className="h-12 w-12 text-blue-600" />
               </div>
-              <CardTitle className="text-2xl">School Profile Not Registered</CardTitle>
+              <CardTitle className="text-2xl">{dashboardId.kepsek.missingSchool.title}</CardTitle>
               <CardDescription>
-                Your school profile has not been set up yet
+                {dashboardId.kepsek.missingSchool.description}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  To access the Kepsek dashboard, your school profile must be registered by an administrator. 
-                  Please provide your Principal ID to an admin to complete the registration.
+                  {dashboardId.kepsek.missingSchool.instruction}
                 </AlertDescription>
               </Alert>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Your Principal ID</label>
+                <label className="text-sm font-medium">{dashboardId.kepsek.missingSchool.yourPrincipalId}</label>
                 <div className="flex gap-2">
                   <Input
                     value={principalId}
@@ -123,13 +123,13 @@ export default function KepsekDashboardPage() {
                     onClick={handleCopyPrincipalId}
                     variant="outline"
                     size="icon"
-                    title="Copy Principal ID"
+                    title={dashboardId.kepsek.missingSchool.copyPrincipalId}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Share this Principal ID with your administrator to register your school profile
+                  {dashboardId.kepsek.missingSchool.shareInstruction}
                 </p>
               </div>
             </CardContent>
@@ -139,7 +139,7 @@ export default function KepsekDashboardPage() {
         <footer className="mt-12 py-6 border-t bg-white/50 dark:bg-gray-900/50">
           <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
             <p>
-              Built with love using{' '}
+              {dashboardId.footer.builtWith}{' '}
               <a
                 href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
                 target="_blank"
@@ -149,7 +149,7 @@ export default function KepsekDashboardPage() {
                 caffeine.ai
               </a>
             </p>
-            <p className="mt-1">© {new Date().getFullYear()} SHQ Kepsek Tracker</p>
+            <p className="mt-1">{dashboardId.footer.copyright(new Date().getFullYear())}</p>
           </div>
         </footer>
       </div>
@@ -167,9 +167,9 @@ export default function KepsekDashboardPage() {
         {/* Profile Section */}
         <Card className="mb-6 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-t-lg">
-            <CardTitle className="text-2xl">Profile Kepala Sekolah</CardTitle>
+            <CardTitle className="text-2xl">{dashboardId.kepsek.profileTitle}</CardTitle>
             <CardDescription className="text-blue-50">
-              Informasi sekolah dan kepala sekolah
+              {dashboardId.kepsek.profileSubtitle}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
@@ -184,21 +184,21 @@ export default function KepsekDashboardPage() {
                 <div className="flex items-start gap-3">
                   <School className="h-5 w-5 text-blue-600 mt-0.5" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Nama Sekolah</p>
+                    <p className="text-sm text-muted-foreground">{dashboardId.kepsek.schoolName}</p>
                     <p className="font-semibold">{school.name}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-green-600 mt-0.5" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Wilayah</p>
+                    <p className="text-sm text-muted-foreground">{dashboardId.kepsek.region}</p>
                     <p className="font-semibold">{school.region}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <User className="h-5 w-5 text-purple-600 mt-0.5" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Kepala Sekolah</p>
+                    <p className="text-sm text-muted-foreground">{dashboardId.kepsek.principalName}</p>
                     <p className="font-semibold">{school.principalName}</p>
                   </div>
                 </div>
@@ -212,7 +212,7 @@ export default function KepsekDashboardPage() {
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
-              <span>Error loading today's report. Please try again.</span>
+              <span>{dashboardId.kepsek.error.loadingReport}</span>
               <Button 
                 onClick={() => refetchReport()} 
                 variant="outline" 
@@ -220,7 +220,7 @@ export default function KepsekDashboardPage() {
                 className="ml-4"
               >
                 <RefreshCw className="h-3 w-3 mr-1" />
-                Retry
+                {dashboardId.common.retry}
               </Button>
             </AlertDescription>
           </Alert>
@@ -231,14 +231,14 @@ export default function KepsekDashboardPage() {
           <Alert className="mb-6 border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
             <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
             <AlertDescription className="text-green-800 dark:text-green-200">
-              Anda sudah mengisi laporan hari ini. Terima kasih!
+              {dashboardId.kepsek.submission.submitted}
             </AlertDescription>
           </Alert>
         ) : !reportHasError ? (
           <Alert className="mb-6 border-orange-200 bg-orange-50 dark:bg-orange-950 dark:border-orange-800">
             <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
             <AlertDescription className="text-orange-800 dark:text-orange-200">
-              Anda belum mengisi laporan hari ini. Silakan isi form di bawah.
+              {dashboardId.kepsek.submission.notSubmitted}
             </AlertDescription>
           </Alert>
         ) : null}
@@ -255,7 +255,7 @@ export default function KepsekDashboardPage() {
       <footer className="mt-12 py-6 border-t bg-white/50 dark:bg-gray-900/50">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>
-            Built with love using{' '}
+            {dashboardId.footer.builtWith}{' '}
             <a
               href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
               target="_blank"
@@ -265,7 +265,7 @@ export default function KepsekDashboardPage() {
               caffeine.ai
             </a>
           </p>
-          <p className="mt-1">© {new Date().getFullYear()} SHQ Kepsek Tracker</p>
+          <p className="mt-1">{dashboardId.footer.copyright(new Date().getFullYear())}</p>
         </div>
       </footer>
     </div>

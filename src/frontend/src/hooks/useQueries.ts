@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
-import type { School, DailyReport, RankedDailyReport, UserRole, SchoolSummary } from '../backend';
+import type { School, DailyReport, RankedDailyReport, UserRole, SchoolSummary, DailyMonitoringRow } from '../backend';
 import { Principal } from '@dfinity/principal';
 import { getTodayKey, getStartOfDayNanoseconds } from '../utils/dayKey';
 
@@ -32,6 +32,16 @@ export function useIsCallerAdmin() {
     enabled: !!actor && !actorFetching,
     staleTime: Infinity,
   });
+}
+
+// Helper to refetch caller role (used by AccessDeniedPage retry)
+export function useRefetchCallerRole() {
+  const queryClient = useQueryClient();
+  
+  return async () => {
+    await queryClient.invalidateQueries({ queryKey: ['callerRole'] });
+    return queryClient.refetchQueries({ queryKey: ['callerRole'] });
+  };
 }
 
 // School/Profile queries - PRINCIPAL-SCOPED
@@ -86,9 +96,13 @@ export function useSaveSchoolForPrincipal() {
     onSuccess: (_, { principal }) => {
       // Invalidate the specific principal's school query
       queryClient.invalidateQueries({ queryKey: ['callerSchool', principal.toString()] });
+      // Invalidate the role query for that principal (in case they're logged in)
+      queryClient.invalidateQueries({ queryKey: ['callerRole'] });
       // Invalidate admin queries
       queryClient.invalidateQueries({ queryKey: ['activeSchoolsList'] });
       queryClient.invalidateQueries({ queryKey: ['activeSchoolsCount'] });
+      // Invalidate monitoring queries
+      queryClient.invalidateQueries({ queryKey: ['dailyMonitoringRows'] });
     },
   });
 }
@@ -108,6 +122,8 @@ export function useUpdateSchoolForPrincipal() {
       // Invalidate admin queries
       queryClient.invalidateQueries({ queryKey: ['activeSchoolsList'] });
       queryClient.invalidateQueries({ queryKey: ['activeSchoolsCount'] });
+      // Invalidate monitoring queries
+      queryClient.invalidateQueries({ queryKey: ['dailyMonitoringRows'] });
     },
   });
 }
@@ -170,8 +186,9 @@ export function useSaveDailyReport() {
       queryClient.invalidateQueries({ queryKey: ['allKepsekReports', principalId] });
       queryClient.invalidateQueries({ queryKey: ['activeSchoolsCount'] });
       
-      // Invalidate admin monitoring query so it shows the update immediately
+      // Invalidate admin monitoring queries (both old and new)
       queryClient.invalidateQueries({ queryKey: ['reportsForDate'] });
+      queryClient.invalidateQueries({ queryKey: ['dailyMonitoringRows'] });
     },
   });
 }
@@ -189,6 +206,24 @@ export function useGetReportsForDate(date: Date) {
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getReportsForDate(dateKey);
+    },
+    enabled: !!actor && !actorFetching && !!identity,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+}
+
+export function useGetDailyMonitoringRows(date: Date) {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  const principalId = identity?.getPrincipal().toString();
+  const dateKey = getStartOfDayNanoseconds(date);
+
+  return useQuery<DailyMonitoringRow[]>({
+    queryKey: ['dailyMonitoringRows', principalId, dateKey.toString()],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getDailyMonitoringRows(dateKey);
     },
     enabled: !!actor && !actorFetching && !!identity,
     refetchInterval: 30000, // Refresh every 30 seconds

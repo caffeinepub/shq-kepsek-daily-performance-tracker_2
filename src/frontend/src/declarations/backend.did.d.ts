@@ -10,6 +10,11 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface DailyMonitoringRow {
+  'report' : [] | [DailyReport],
+  'principal' : Principal,
+  'school' : School,
+}
 export interface DailyReport {
   'programProblemSolvingScore' : bigint,
   'waliSantriResponseScore' : bigint,
@@ -72,6 +77,7 @@ export interface _SERVICE {
   'getAllDailyReportsForKepsek' : ActorMethod<[], Array<DailyReport>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getDailyMonitoringRows' : ActorMethod<[Time], Array<DailyMonitoringRow>>,
   'getDailyReport' : ActorMethod<[Principal, Time], [] | [DailyReport]>,
   'getReportsForDate' : ActorMethod<[Time], Array<RankedDailyReport>>,
   'getSchool' : ActorMethod<[Principal], [] | [School]>,

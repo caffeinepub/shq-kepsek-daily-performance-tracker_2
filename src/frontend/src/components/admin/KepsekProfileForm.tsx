@@ -47,7 +47,7 @@ export default function KepsekProfileForm({ onSuccess, onCancel }: KepsekProfile
           active,
         },
       });
-      toast.success('School profile successfully registered!');
+      toast.success('School profile registered successfully! Kepsek access has been granted.');
       onSuccess();
     } catch (error: any) {
       toast.error(error.message || 'Failed to save school profile');
@@ -57,16 +57,17 @@ export default function KepsekProfileForm({ onSuccess, onCancel }: KepsekProfile
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="principalId">Kepsek Principal ID *</Label>
+        <Label htmlFor="principalId">Principal ID *</Label>
         <Input
           id="principalId"
           value={principalId}
           onChange={(e) => setPrincipalId(e.target.value)}
-          placeholder="Example: xxxxx-xxxxx-xxxxx-xxxxx-xxx"
+          placeholder="xxxxx-xxxxx-xxxxx-xxxxx-xxx"
           required
+          className="font-mono text-sm"
         />
         <p className="text-xs text-muted-foreground">
-          The Principal ID of the Kepsek user who will own this school profile
+          The Principal ID of the user who will be granted Kepsek access. They can find this on their Access Denied screen after logging in.
         </p>
       </div>
 
@@ -76,18 +77,18 @@ export default function KepsekProfileForm({ onSuccess, onCancel }: KepsekProfile
           id="schoolName"
           value={schoolName}
           onChange={(e) => setSchoolName(e.target.value)}
-          placeholder="Example: SMA Negeri 1 Jakarta"
+          placeholder="e.g., SMA Negeri 1 Jakarta"
           required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="region">School Region *</Label>
+        <Label htmlFor="region">Region *</Label>
         <Input
           id="region"
           value={region}
           onChange={(e) => setRegion(e.target.value)}
-          placeholder="Example: Jakarta Pusat"
+          placeholder="e.g., Jakarta Pusat"
           required
         />
       </div>
@@ -98,13 +99,21 @@ export default function KepsekProfileForm({ onSuccess, onCancel }: KepsekProfile
           id="principalName"
           value={principalName}
           onChange={(e) => setPrincipalName(e.target.value)}
-          placeholder="Example: Dr. Ahmad Suryadi, M.Pd"
+          placeholder="e.g., Dr. Ahmad Suryadi, M.Pd"
           required
         />
+        <p className="text-xs text-muted-foreground">
+          The full name of the school principal
+        </p>
       </div>
 
       <div className="flex items-center justify-between">
-        <Label htmlFor="active">Active Status</Label>
+        <div className="space-y-0.5">
+          <Label htmlFor="active">Active Status</Label>
+          <p className="text-xs text-muted-foreground">
+            Enable to allow this Kepsek to submit reports
+          </p>
+        </div>
         <Switch id="active" checked={active} onCheckedChange={setActive} />
       </div>
 
@@ -113,7 +122,7 @@ export default function KepsekProfileForm({ onSuccess, onCancel }: KepsekProfile
           Cancel
         </Button>
         <Button type="submit" disabled={saveSchoolForPrincipal.isPending} className="flex-1">
-          {saveSchoolForPrincipal.isPending ? 'Saving...' : 'Save'}
+          {saveSchoolForPrincipal.isPending ? 'Registering...' : 'Register & Grant Access'}
         </Button>
       </div>
     </form>

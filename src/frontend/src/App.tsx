@@ -8,14 +8,21 @@ import AdminKepsekManagementPage from './pages/AdminKepsekManagementPage';
 import AccessDeniedPage from './pages/AccessDeniedPage';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type View = 'dashboard' | 'management';
 
 export default function App() {
   const { identity, isInitializing } = useInternetIdentity();
-  const { data: role, isLoading: roleLoading } = useGetCallerRole();
+  const { data: role, isLoading: roleLoading, isFetched: roleFetched } = useGetCallerRole();
   const [adminView, setAdminView] = useState<View>('dashboard');
+
+  // Reset admin view when user logs out
+  useEffect(() => {
+    if (!identity) {
+      setAdminView('dashboard');
+    }
+  }, [identity]);
 
   // Show loading state while initializing
   if (isInitializing || (identity && roleLoading)) {
@@ -42,7 +49,7 @@ export default function App() {
     );
   }
 
-  // Authenticated but no role assigned
+  // Authenticated but no role assigned - show access denied with retry option
   if (!role || role === UserRole.guest) {
     return (
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>

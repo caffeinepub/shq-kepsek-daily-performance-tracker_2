@@ -36,8 +36,9 @@ export default function AdminKepsekManagementPage({ onNavigateToDashboard }: Adm
         <Alert className="mb-6">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            To register a new Kepsek: Have them log in first with Internet Identity, 
-            then assign the "user" role via backend, and finally register their school profile here using their Principal ID.
+            To register a new Kepsek: Have them log in once with Internet Identity to generate their Principal ID. 
+            They will see an "Access Denied" screen with their Principal ID. 
+            Copy that ID and register their school profile below—this will automatically grant them Kepsek access.
           </AlertDescription>
         </Alert>
 
@@ -45,7 +46,7 @@ export default function AdminKepsekManagementPage({ onNavigateToDashboard }: Adm
           <CardHeader>
             <CardTitle>Register School Profile</CardTitle>
             <CardDescription>
-              Create a school profile for a Kepsek user
+              Create a school profile for a Kepsek user and automatically grant access
             </CardDescription>
           </CardHeader>
           <CardContent>

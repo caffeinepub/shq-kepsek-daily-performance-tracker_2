@@ -51,6 +51,11 @@ export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
 });
+export const DailyMonitoringRow = IDL.Record({
+  'report' : IDL.Opt(DailyReport),
+  'principal' : IDL.Principal,
+  'school' : School,
+});
 export const RankedDailyReport = IDL.Record({
   'kepsek' : IDL.Principal,
   'dailyReport' : DailyReport,
@@ -94,6 +99,11 @@ export const idlService = IDL.Service({
     ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getDailyMonitoringRows' : IDL.Func(
+      [Time],
+      [IDL.Vec(DailyMonitoringRow)],
+      ['query'],
+    ),
   'getDailyReport' : IDL.Func(
       [IDL.Principal, Time],
       [IDL.Opt(DailyReport)],
@@ -160,6 +170,11 @@ export const idlFactory = ({ IDL }) => {
     'attendancePhoto' : IDL.Opt(ExternalBlob),
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });
+  const DailyMonitoringRow = IDL.Record({
+    'report' : IDL.Opt(DailyReport),
+    'principal' : IDL.Principal,
+    'school' : School,
+  });
   const RankedDailyReport = IDL.Record({
     'kepsek' : IDL.Principal,
     'dailyReport' : DailyReport,
@@ -203,6 +218,11 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getDailyMonitoringRows' : IDL.Func(
+        [Time],
+        [IDL.Vec(DailyMonitoringRow)],
+        ['query'],
+      ),
     'getDailyReport' : IDL.Func(
         [IDL.Principal, Time],
         [IDL.Opt(DailyReport)],

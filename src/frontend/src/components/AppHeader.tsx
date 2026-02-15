@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { type ReactNode } from 'react';
+import { dashboardId } from '../localization/dashboardId';
 
 interface AppHeaderProps {
   children?: ReactNode;
@@ -28,9 +29,9 @@ export default function AppHeader({ children }: AppHeaderProps) {
           />
           <div>
             <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-              SHQ Kepsek Tracker
+              {dashboardId.header.appName}
             </h1>
-            <p className="text-xs text-muted-foreground">Daily Performance</p>
+            <p className="text-xs text-muted-foreground">{dashboardId.header.tagline}</p>
           </div>
         </div>
 
@@ -38,7 +39,7 @@ export default function AppHeader({ children }: AppHeaderProps) {
           {children}
           <Button onClick={handleLogout} variant="ghost" size="sm">
             <LogOut className="h-4 w-4 mr-2" />
-            Keluar
+            {dashboardId.common.logout}
           </Button>
         </div>
       </div>

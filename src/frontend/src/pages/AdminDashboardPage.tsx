@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Settings } from 'lucide-react';
+import { dashboardId } from '../localization/dashboardId';
 
 interface AdminDashboardPageProps {
   onNavigateToManagement: () => void;
@@ -35,24 +36,24 @@ export default function AdminDashboardPage({ onNavigateToManagement }: AdminDash
       <AppHeader>
         <Button onClick={onNavigateToManagement} variant="outline" size="sm">
           <Settings className="h-4 w-4 mr-2" />
-          Kelola Kepsek
+          {dashboardId.admin.manageKepsek}
         </Button>
       </AppHeader>
 
       <main className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Dashboard Direktur
+            {dashboardId.admin.title}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Monitoring performa harian kepala sekolah
+            {dashboardId.admin.subtitle}
           </p>
         </div>
 
         {/* Date Selector */}
         <div className="mb-6">
           <Label htmlFor="date-select" className="text-sm font-medium mb-2 block">
-            Select date
+            {dashboardId.admin.selectDate}
           </Label>
           <Input
             id="date-select"
@@ -82,7 +83,7 @@ export default function AdminDashboardPage({ onNavigateToManagement }: AdminDash
       <footer className="mt-12 py-6 border-t bg-white/50 dark:bg-gray-900/50">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>
-            Built with love using{' '}
+            {dashboardId.footer.builtWith}{' '}
             <a
               href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
               target="_blank"
@@ -92,7 +93,7 @@ export default function AdminDashboardPage({ onNavigateToManagement }: AdminDash
               caffeine.ai
             </a>
           </p>
-          <p className="mt-1">© {new Date().getFullYear()} SHQ Kepsek Tracker</p>
+          <p className="mt-1">{dashboardId.footer.copyright(new Date().getFullYear())}</p>
         </div>
       </footer>
     </div>

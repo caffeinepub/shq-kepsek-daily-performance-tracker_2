@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Admin Monitoring table so daily progress indicators reliably display for every report row on any selected date.
+**Goal:** Reduce onboarding friction for school principals by auto-assigning the Kepsek/user role during school profile registration and improving the “Access Denied” experience for users with no role.
 
 **Planned changes:**
-- Update the Admin Monitoring table to always render the five daily progress category indicators (Attendance, Class Control, Teacher Control, Parent/Guardian Response, Program & Problem Solving) for each returned report row and selected date.
-- Fix `DailyProgressIndicators` completion detection to use robust checks against actual DailyReport fields (including correct handling of optional/opt Candid fields) rather than fragile equality checks like `score === 20`.
-- Ensure any user-facing text touched during the fix (including empty states) is in English.
+- Backend: Update the existing admin school-registration/update flow so that when a principal is registered/updated, they are automatically granted the Kepsek/user role (within the single main actor canister).
+- Frontend: Enhance the Access Denied screen for guest/no-role users to display the logged-in Principal ID (read-only) with a one-click Copy action (with success toast), provide clear English next-step instructions, and add a Retry action that refetches the caller role and routes to the correct dashboard if access is granted.
+- Frontend: Update the Admin “Manage School Principals” page and Kepsek registration form to use English labels/instructions and to reflect that saving a school profile automatically assigns Kepsek access (remove any suggestion of a separate manual role assignment step).
 
-**User-visible outcome:** In Admin Monitoring, selecting any date that has reports will show non-blank daily progress indicators for each report row, with completion status accurately reflecting the stored report data.
+**User-visible outcome:** Principals registered by an admin can log in and reach the Kepsek dashboard without seeing Access Denied; if a user has no role, they can copy their Principal ID, follow clear instructions, and retry access without signing out.

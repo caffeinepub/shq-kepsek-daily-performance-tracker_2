@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { CategoryScoreBadge, ScoreBadge } from '../StatusPills';
 import type { DailyReport } from '../../backend';
 import { CheckCircle2, Edit } from 'lucide-react';
+import { dashboardId } from '../../localization/dashboardId';
 
 interface TodaySubmissionSummaryProps {
   report: DailyReport;
@@ -17,10 +18,10 @@ export default function TodaySubmissionSummary({ report, onEdit }: TodaySubmissi
           <div>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle2 className="h-6 w-6" />
-              Laporan Hari Ini
+              {dashboardId.kepsek.summary.title}
             </CardTitle>
             <CardDescription className="text-green-50">
-              Anda sudah mengisi laporan untuk hari ini
+              {dashboardId.kepsek.summary.description}
             </CardDescription>
           </div>
           <ScoreBadge score={Number(report.totalScore)} className="text-lg px-4 py-2" />
@@ -30,7 +31,7 @@ export default function TodaySubmissionSummary({ report, onEdit }: TodaySubmissi
         {/* Attendance Photo */}
         {report.attendancePhoto && (
           <div className="mb-4">
-            <p className="text-sm font-medium mb-2">Foto Kehadiran:</p>
+            <p className="text-sm font-medium mb-2">{dashboardId.kepsek.summary.attendancePhoto}</p>
             <img
               src={report.attendancePhoto.getDirectURL()}
               alt="Attendance"
@@ -41,37 +42,37 @@ export default function TodaySubmissionSummary({ report, onEdit }: TodaySubmissi
 
         {/* Score Breakdown */}
         <div className="space-y-2">
-          <p className="text-sm font-semibold mb-3">Rincian Skor:</p>
+          <p className="text-sm font-semibold mb-3">{dashboardId.kepsek.summary.scoreBreakdown}</p>
           <CategoryScoreBadge
             score={Number(report.attendanceScore)}
             maxScore={20}
-            label="Kehadiran"
+            label={dashboardId.kepsek.summary.categories.attendance}
           />
           <CategoryScoreBadge
             score={Number(report.classControlScore)}
             maxScore={20}
-            label="Kontrol Kelas"
+            label={dashboardId.kepsek.summary.categories.classControl}
           />
           <CategoryScoreBadge
             score={Number(report.teacherControlScore)}
             maxScore={20}
-            label="Kontrol Guru"
+            label={dashboardId.kepsek.summary.categories.teacherControl}
           />
           <CategoryScoreBadge
             score={Number(report.waliSantriResponseScore)}
             maxScore={20}
-            label="Respon Wali Santri"
+            label={dashboardId.kepsek.summary.categories.parentResponse}
           />
           <CategoryScoreBadge
             score={Number(report.programProblemSolvingScore)}
             maxScore={20}
-            label="Program & Problem Solving"
+            label={dashboardId.kepsek.summary.categories.programSolving}
           />
         </div>
 
         <Button onClick={onEdit} variant="outline" className="w-full mt-4">
           <Edit className="h-4 w-4 mr-2" />
-          Edit Laporan
+          {dashboardId.kepsek.summary.editReport}
         </Button>
       </CardContent>
     </Card>

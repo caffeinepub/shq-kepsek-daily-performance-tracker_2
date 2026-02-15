@@ -1,73 +1,85 @@
 {
   "kind": "build_request",
-  "title": "Fix Admin Monitoring daily progress indicators not showing for any date",
-  "priority": "high",
+  "title": "Reduce friction for principals by auto-assigning Kepsek role and improving Access Denied onboarding",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-32",
-      "text": "Fix the Admin Monitoring table so that the per-report daily progress indicators (Attendance, Class Control, Teacher Control, Parent/Guardian Response, Program & Problem Solving) reliably render for every returned report for any selected date.",
-      "target": "frontend",
+      "id": "REQ-1",
+      "text": "Update the backend so that when an admin registers or updates a school profile for a principal, the target principal is automatically granted the Kepsek/user role (so they no longer see “Access Denied” after logging in).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "progres harian kepsek di tabel admin\nsemua tanggal\ntidak ada \n\nkerjakan sekarang"
+          "perbaiki, ini lumayan meribetkan"
         ]
       },
       "acceptanceCriteria": [
-        "When the Admin Monitoring table shows at least one report row, the 'Daily Progress' cell in each row visibly renders five category indicators (not blank) for the selected date.",
-        "Daily progress indicators render consistently across all selected dates (today and historical dates) as long as `useGetReportsForDate(selectedDate)` returns data.",
-        "Daily progress indicator logic correctly interprets optional Candid fields (e.g., `attendancePhoto` as an opt value) so it does not mis-detect presence/absence due to JavaScript truthiness (e.g., `[]` vs `[value]`)."
+        "After an admin calls the existing school-registration flow for a principal (the same one used by the UI), that principal’s subsequent call to getCallerUserRole returns the Kepsek/user role (not guest).",
+        "A principal who has been registered by an admin can log in and reach the Kepsek dashboard without being blocked by the AccessDeniedPage role check.",
+        "No new backend canisters/services are introduced; all logic remains in the single main actor."
       ]
     },
     {
-      "id": "REQ-33",
-      "text": "Update the completion logic used by the Admin daily progress indicators so that it matches the actual stored DailyReport data and does not depend on fragile equality checks (e.g., `score === 20`), ensuring categories display as completed when the corresponding section is filled according to the report data.",
+      "id": "REQ-2",
+      "text": "Improve the guest/no-role experience so it is not cumbersome: on the Access Denied screen, show the logged-in user’s Principal ID with a one-click “Copy” action, provide clear next-step instructions, and add a “Retry” action that refetches the caller role without requiring the user to sign out.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "progres harian kepsek di tabel admin\nsemua tanggal\ntidak ada"
+          "perbaiki, ini lumayan meribetkan"
         ]
       },
       "acceptanceCriteria": [
-        "For each category, the indicator is marked completed based on robust checks against the DailyReport fields (e.g., score > 0 and/or required data present), and not only `score === 20`.",
-        "Attendance completion correctly requires a real photo value (opt Some) rather than passing on an empty opt (None).",
-        "No runtime errors occur in `DailyProgressIndicators` when any DailyReport field is missing/undefined/optional from the generated types."
+        "When a logged-in user has role=guest or no role, the Access Denied view displays their Principal ID in a read-only field and includes a Copy button that confirms success via toast.",
+        "The Access Denied view includes a Retry button that triggers a role refetch and, if the role becomes valid, routes the user into the correct dashboard without logout.",
+        "All user-facing text added/changed in this flow is in English."
       ]
     },
     {
-      "id": "REQ-34",
-      "text": "Ensure any user-facing text that is added or modified while implementing this fix is in English (including Admin Monitoring table descriptions, empty states, button labels, and status badges if touched).",
+      "id": "REQ-3",
+      "text": "Remove the extra manual step implied in the admin UI: update the Admin “Manage School Principals” page and the Kepsek registration form so the instructions and labels are in English and reflect that saving a school profile will also assign the Kepsek/user role automatically.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "Use English for any user-facing text in the build request."
+          "perbaiki, ini lumayan meribetkan"
         ]
       },
       "acceptanceCriteria": [
-        "Any edited strings in `frontend/src/components/admin/MonitoringTable.tsx`, `frontend/src/components/admin/DailyProgressIndicators.tsx`, and/or related components are in English.",
-        "If the empty state is shown (no reports for selected date), the message is in English."
+        "AdminKepsekManagementPage no longer instructs admins to separately “assign the user role via backend”; it states that registering the school profile will assign access automatically.",
+        "KepsekProfileForm field labels and helper text are in English (e.g., “Principal ID”, not mixed-language labels).",
+        "Successful registration messaging remains clear and in English."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui or any paths listed in frontend.immutablePaths.",
-    "Maintain the existing single-actor backend architecture (all Motoko logic in backend/main.mo)."
+    "Backend must remain a single-actor Motoko canister; do not introduce additional backend services.",
+    "Do not modify files under frontend/src/components/ui or other paths listed as immutable in SYSTEM_CONTEXT.",
+    "Use English for any user-facing text in these changes."
   ],
   "nonGoals": [
-    "Do not introduce new report categories or change scoring weights.",
-    "Do not add new authentication methods or roles.",
-    "Do not change backend persistence or the DailyReport schema as part of this fix unless it is strictly required to make progress indicators render."
+    "Implementing third-party authentication beyond Internet Identity.",
+    "Adding real-time features (WebSockets/chat/notifications).",
+    "Redesigning unrelated dashboard features (analytics, monitoring table behavior) beyond the role/onboarding friction shown."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

@@ -10,11 +10,8 @@ import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import MixinStorage "blob-storage/Mixin";
 import BlobStorage "blob-storage/Storage";
-
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-
-// Upgrade persistent actor with embedded migration routine.
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -36,7 +33,7 @@ actor {
   public type DailyReport = {
     date : Time.Time;
     attendanceScore : Nat;
-    departureTime : Time.Time; // Separate field for departure time
+    departureTime : Time.Time;
     classControlScore : Nat;
     teacherControlScore : Nat;
     waliSantriResponseScore : Nat;
@@ -61,7 +58,12 @@ actor {
     school : School;
   };
 
-  // Persistent storage for schools, user profiles & daily reports!
+  public type DailyMonitoringRow = {
+    principal : Principal;
+    school : School;
+    report : ?DailyReport;
+  };
+
   var schools = Map.empty<Principal, School>();
   var userProfiles = Map.empty<Principal, UserProfile>();
   var dailyReports = Map.empty<Principal, Map.Map<Time.Time, DailyReport>>();
@@ -100,6 +102,8 @@ actor {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can update schools");
     };
+    // Grant the user role to the principal when school profile is saved
+    AccessControl.assignRole(accessControlState, caller, principal, #user);
     schools.add(principal, school);
   };
 
@@ -113,12 +117,10 @@ actor {
 
   // Daily Report Functions
   public shared ({ caller }) func saveDailyReport(dailyReport : DailyReport) : async () {
-    // Only users (Kepsek) can submit daily reports
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only Kepsek can submit daily reports");
     };
 
-    // Verify that the Kepsek has a registered school
     switch (schools.get(caller)) {
       case (null) {
         Runtime.trap("Unauthorized: No school registered for this Kepsek");
@@ -141,7 +143,6 @@ actor {
   };
 
   public query ({ caller }) func getDailyReport(principal : Principal, date : Time.Time) : async ?DailyReport {
-    // Admin can view any report, Kepsek can only view their own
     if (caller != principal and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own daily reports");
     };
@@ -155,7 +156,6 @@ actor {
   };
 
   public query ({ caller }) func getAllDailyReportsForKepsek() : async [DailyReport] {
-    // Only users (Kepsek) can view their own reports
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only Kepsek can view their reports");
     };
@@ -170,7 +170,6 @@ actor {
 
   // Admin Dashboard Functions
   public query ({ caller }) func getReportsForDate(date : Time.Time) : async [RankedDailyReport] {
-    // Admin-only: monitoring dashboard
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view monitoring dashboard");
     };
@@ -195,7 +194,6 @@ actor {
   };
 
   public query ({ caller }) func getActiveSchoolsCount() : async Nat {
-    // Admin-only: dashboard statistics
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admins can view statistics");
     };
@@ -228,9 +226,33 @@ actor {
     );
   };
 
+  public query ({ caller }) func getDailyMonitoringRows(date : Time.Time) : async [DailyMonitoringRow] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can view monitoring dashboard");
+    };
+
+    let dateKey = normalizeToDay(date);
+    let rows = List.empty<DailyMonitoringRow>();
+
+    for ((principal, school) in schools.entries()) {
+      if (school.active) {
+        let report = switch (dailyReports.get(principal)) {
+          case (null) { null };
+          case (?reports) { reports.get(dateKey) };
+        };
+        rows.add({
+          principal;
+          school;
+          report;
+        });
+      };
+    };
+
+    rows.toArray();
+  };
+
   // Helper Functions
   func normalizeToDay(timestamp : Time.Time) : Time.Time {
-    // Convert nanoseconds to days, then back to nanoseconds at midnight
     let days = timestamp / 86400000000000;
     days * 86400000000000;
   };

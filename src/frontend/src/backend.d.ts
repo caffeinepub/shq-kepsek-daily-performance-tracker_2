@@ -15,6 +15,11 @@ export class ExternalBlob {
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
 export type Time = bigint;
+export interface DailyMonitoringRow {
+    report?: DailyReport;
+    principal: Principal;
+    school: School;
+}
 export interface School {
     region: string;
     active: boolean;
@@ -56,6 +61,7 @@ export interface backendInterface {
     getAllDailyReportsForKepsek(): Promise<Array<DailyReport>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getDailyMonitoringRows(date: Time): Promise<Array<DailyMonitoringRow>>;
     getDailyReport(principal: Principal, date: Time): Promise<DailyReport | null>;
     getReportsForDate(date: Time): Promise<Array<RankedDailyReport>>;
     getSchool(principal: Principal): Promise<School | null>;

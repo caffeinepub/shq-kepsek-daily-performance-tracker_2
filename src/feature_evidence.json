@@ -2,11 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-admin-monitoring-table-so-that-the-per-report-daily-progress-indicators-attendance-class-control-teacher-control-parent-guardian-response-program-problem-solving-reliably-render-for-every-returned-report-for-any-selected-date",
-      "featureTitle": "Fix the Admin Monitoring table so that the per-report daily progress indicators (Attendance, Class Control, Teacher Control, Parent/Guardian Response, Program & Problem Solving) reliably render for every returned report for any selected date.",
+      "featureId": "feature-improve-the-guest-no-role-experience-so-it-is-not-cumbersome-on-the-access-denied-screen-show-the-logged-in-user-s-principal-id-with-a-one-click-copy-action-provide-clear-next-step-instructions-and-add-a-retry-action-that-refetches-the-caller-role-without-requiring-the-user-to-sign-out",
+      "featureTitle": "Improve the guest/no-role experience so it is not cumbersome: on the Access Denied screen, show the logged-in user’s Principal ID with a one-click “Copy” action, provide clear next-step instructions, and add a “Retry” action that refetches the caller role without requiring the user to sign out.",
       "files": [
-        "frontend/src/components/admin/DailyProgressIndicators.tsx",
-        "frontend/src/components/admin/MonitoringTable.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AccessDeniedPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,16 +19,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-32"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-completion-logic-used-by-the-admin-daily-progress-indicators-so-that-it-matches-the-actual-stored-dailyreport-data-and-does-not-depend-on-fragile-equality-checks-e-g-score-20-ensuring-categories-display-as-completed-when-the-corresponding-section-is-filled-according-to-the-report-data",
-      "featureTitle": "Update the completion logic used by the Admin daily progress indicators so that it matches the actual stored DailyReport data and does not depend on fragile equality checks (e.g., `score === 20`), ensuring categories display as completed when the corresponding section is filled according to the report data.",
+      "featureId": "feature-remove-the-extra-manual-step-implied-in-the-admin-ui-update-the-admin-manage-school-principals-page-and-the-kepsek-registration-form-so-the-instructions-and-labels-are-in-english-and-reflect-that-saving-a-school-profile-will-also-assign-the-kepsek-user-role-automatically",
+      "featureTitle": "Remove the extra manual step implied in the admin UI: update the Admin “Manage School Principals” page and the Kepsek registration form so the instructions and labels are in English and reflect that saving a school profile will also assign the Kepsek/user role automatically.",
       "files": [
-        "frontend/src/components/admin/DailyProgressIndicators.tsx",
-        "frontend/src/components/admin/ReportDetailView.tsx"
+        "frontend/src/components/admin/KepsekProfileForm.tsx",
+        "frontend/src/pages/AdminKepsekManagementPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -39,28 +40,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-33"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-any-user-facing-text-that-is-added-or-modified-while-implementing-this-fix-is-in-english-including-admin-monitoring-table-descriptions-empty-states-button-labels-and-status-badges-if-touched",
-      "featureTitle": "Ensure any user-facing text that is added or modified while implementing this fix is in English (including Admin Monitoring table descriptions, empty states, button labels, and status badges if touched).",
-      "files": [
-        "frontend/src/components/StatusPills.tsx",
-        "frontend/src/components/admin/MonitoringTable.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-34"
+        "REQ-3"
       ],
       "confidence": "high"
     }

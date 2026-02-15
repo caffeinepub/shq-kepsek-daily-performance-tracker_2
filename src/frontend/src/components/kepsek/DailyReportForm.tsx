@@ -12,6 +12,7 @@ import AttendancePhotoField from './AttendancePhotoField';
 import { ExternalBlob } from '../../backend';
 import { Clock, ClipboardCheck, Users, MessageSquare, Target } from 'lucide-react';
 import { getTodayKey } from '../../utils/dayKey';
+import { dashboardId } from '../../localization/dashboardId';
 
 interface DailyReportFormProps {
   existingReport?: DailyReport | null;
@@ -73,17 +74,17 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
     e.preventDefault();
 
     if (!attendancePhoto) {
-      toast.error('Please upload attendance photo');
+      toast.error(dashboardId.kepsek.form.validation.uploadPhoto);
       return;
     }
 
     if (!arrivalTime) {
-      toast.error('Please enter arrival time');
+      toast.error(dashboardId.kepsek.form.validation.enterArrival);
       return;
     }
 
     if (!departureTime) {
-      toast.error('Please enter departure time');
+      toast.error(dashboardId.kepsek.form.validation.enterDeparture);
       return;
     }
 
@@ -105,10 +106,10 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
 
     try {
       await saveMutation.mutateAsync(report);
-      toast.success('Daily report saved successfully!');
+      toast.success(dashboardId.kepsek.form.successSave);
       if (onSuccess) onSuccess();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to save report');
+      toast.error(error.message || dashboardId.kepsek.form.errorSave);
     }
   };
 
@@ -120,11 +121,11 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
       <Card className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950 dark:to-green-950 border-2">
         <CardContent className="pt-6">
           <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">Skor Saat Ini</p>
+            <p className="text-sm text-muted-foreground mb-2">{dashboardId.kepsek.form.currentScore}</p>
             <p className="text-5xl font-bold text-blue-600 dark:text-blue-400">
               {currentScore}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">dari 100 poin</p>
+            <p className="text-sm text-muted-foreground mt-1">{dashboardId.kepsek.form.outOf}</p>
           </div>
         </CardContent>
       </Card>
@@ -134,9 +135,9 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-blue-600" />
-            1. Kehadiran & Foto (20 poin)
+            {dashboardId.kepsek.form.attendance.title}
           </CardTitle>
-          <CardDescription>Upload foto kehadiran dan catat jam datang & pulang</CardDescription>
+          <CardDescription>{dashboardId.kepsek.form.attendance.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <AttendancePhotoField
@@ -145,7 +146,7 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="arrival-time">Jam Datang</Label>
+              <Label htmlFor="arrival-time">{dashboardId.kepsek.form.attendance.arrivalTime}</Label>
               <Input
                 id="arrival-time"
                 type="time"
@@ -155,7 +156,7 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
               />
             </div>
             <div>
-              <Label htmlFor="departure-time">Jam Pulang</Label>
+              <Label htmlFor="departure-time">{dashboardId.kepsek.form.attendance.departureTime}</Label>
               <Input
                 id="departure-time"
                 type="time"
@@ -173,9 +174,9 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5 text-green-600" />
-            2. Kontrol Kelas (20 poin)
+            {dashboardId.kepsek.form.classControl.title}
           </CardTitle>
-          <CardDescription>Apakah Anda melakukan kontrol kelas hari ini?</CardDescription>
+          <CardDescription>{dashboardId.kepsek.form.classControl.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-2">
@@ -185,17 +186,17 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
               onCheckedChange={(checked) => setClassControlDone(checked as boolean)}
             />
             <Label htmlFor="class-control" className="cursor-pointer">
-              Ya, saya sudah melakukan kontrol kelas
+              {dashboardId.kepsek.form.classControl.checkbox}
             </Label>
           </div>
           {classControlDone && (
             <div>
-              <Label htmlFor="class-control-notes">Catatan (opsional)</Label>
+              <Label htmlFor="class-control-notes">{dashboardId.kepsek.form.classControl.notes}</Label>
               <Textarea
                 id="class-control-notes"
                 value={classControlNotes}
                 onChange={(e) => setClassControlNotes(e.target.value)}
-                placeholder="Tulis catatan tentang kontrol kelas..."
+                placeholder={dashboardId.kepsek.form.classControl.placeholder}
                 rows={3}
               />
             </div>
@@ -208,9 +209,9 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-purple-600" />
-            3. Kontrol Guru (20 poin)
+            {dashboardId.kepsek.form.teacherControl.title}
           </CardTitle>
-          <CardDescription>Apakah Anda melakukan kontrol guru hari ini?</CardDescription>
+          <CardDescription>{dashboardId.kepsek.form.teacherControl.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-2">
@@ -220,17 +221,17 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
               onCheckedChange={(checked) => setTeacherControlDone(checked as boolean)}
             />
             <Label htmlFor="teacher-control" className="cursor-pointer">
-              Ya, saya sudah melakukan kontrol guru
+              {dashboardId.kepsek.form.teacherControl.checkbox}
             </Label>
           </div>
           {teacherControlDone && (
             <div>
-              <Label htmlFor="teacher-control-notes">Catatan (opsional)</Label>
+              <Label htmlFor="teacher-control-notes">{dashboardId.kepsek.form.teacherControl.notes}</Label>
               <Textarea
                 id="teacher-control-notes"
                 value={teacherControlNotes}
                 onChange={(e) => setTeacherControlNotes(e.target.value)}
-                placeholder="Tulis catatan tentang kontrol guru..."
+                placeholder={dashboardId.kepsek.form.teacherControl.placeholder}
                 rows={3}
               />
             </div>
@@ -243,9 +244,9 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-orange-600" />
-            4. Respon Wali Santri (20 poin)
+            {dashboardId.kepsek.form.parentResponse.title}
           </CardTitle>
-          <CardDescription>Apakah Anda merespon wali santri hari ini?</CardDescription>
+          <CardDescription>{dashboardId.kepsek.form.parentResponse.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-2">
@@ -255,17 +256,17 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
               onCheckedChange={(checked) => setWaliSantriResponseDone(checked as boolean)}
             />
             <Label htmlFor="wali-santri-response" className="cursor-pointer">
-              Ya, saya sudah merespon wali santri
+              {dashboardId.kepsek.form.parentResponse.checkbox}
             </Label>
           </div>
           {waliSantriResponseDone && (
             <div>
-              <Label htmlFor="wali-santri-response-notes">Catatan (opsional)</Label>
+              <Label htmlFor="wali-santri-response-notes">{dashboardId.kepsek.form.parentResponse.notes}</Label>
               <Textarea
                 id="wali-santri-response-notes"
                 value={waliSantriResponseNotes}
                 onChange={(e) => setWaliSantriResponseNotes(e.target.value)}
-                placeholder="Tulis catatan tentang respon wali santri..."
+                placeholder={dashboardId.kepsek.form.parentResponse.placeholder}
                 rows={3}
               />
             </div>
@@ -278,9 +279,9 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-red-600" />
-            5. Program & Problem Solving (20 poin)
+            {dashboardId.kepsek.form.programSolving.title}
           </CardTitle>
-          <CardDescription>Apakah Anda melakukan program atau problem solving hari ini?</CardDescription>
+          <CardDescription>{dashboardId.kepsek.form.programSolving.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-2">
@@ -290,17 +291,17 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
               onCheckedChange={(checked) => setProgramProblemSolvingDone(checked as boolean)}
             />
             <Label htmlFor="program-problem-solving" className="cursor-pointer">
-              Ya, saya sudah melakukan program atau problem solving
+              {dashboardId.kepsek.form.programSolving.checkbox}
             </Label>
           </div>
           {programProblemSolvingDone && (
             <div>
-              <Label htmlFor="program-problem-solving-notes">Catatan (opsional)</Label>
+              <Label htmlFor="program-problem-solving-notes">{dashboardId.kepsek.form.programSolving.notes}</Label>
               <Textarea
                 id="program-problem-solving-notes"
                 value={programProblemSolvingNotes}
                 onChange={(e) => setProgramProblemSolvingNotes(e.target.value)}
-                placeholder="Tulis catatan tentang program atau problem solving..."
+                placeholder={dashboardId.kepsek.form.programSolving.placeholder}
                 rows={3}
               />
             </div>
@@ -315,7 +316,7 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
         className="w-full"
         disabled={saveMutation.isPending}
       >
-        {saveMutation.isPending ? 'Menyimpan...' : existingReport ? 'Update Laporan' : 'Simpan Laporan'}
+        {saveMutation.isPending ? dashboardId.common.saving : existingReport ? dashboardId.kepsek.form.submitUpdate : dashboardId.kepsek.form.submitNew}
       </Button>
     </form>
   );
