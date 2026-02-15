@@ -56,4 +56,5 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     saveDailyReport(dailyReport: DailyReport): Promise<void>;
     saveSchool(school: School): Promise<void>;
+    saveSchoolForPrincipal(principal: Principal, school: School): Promise<void>;
 }

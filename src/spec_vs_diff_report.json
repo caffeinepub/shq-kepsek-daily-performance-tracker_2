@@ -1,35 +1,25 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T04:51:37.871Z",
-  "summary": "Frontend adds an Admin “Active Schools” section component with search, counts, loading skeletons, error/empty states, and wires it into AdminDashboardPage. The diff does not provide clear evidence (in the truncated backend/main.mo and truncated useQueries.ts) that the required new admin-only backend query and the dedicated React Query hook are implemented.",
-  "missing_requirements": [
+  "generatedAt": "2026-02-15T05:01:38.223Z",
+  "summary": "Backend adds an admin-only API to save a School for an arbitrary principal, and frontend adds an edit dialog + React Query mutation to update by principal with cache invalidation. However, the backend also appears to have changed the existing saveSchool authorization to admin-only, which was not requested and may violate the no-regressions requirement for existing school-save flows.",
+  "missing_requirements": [],
+  "hallucinated_features": [
     {
-      "id": "REQ-12",
-      "requirement": "Add an admin-only backend query returning a list of active schools (active=true) including school.name, school.region, school.principalName, school.active, and the associated Principal (Kepsek) ID; non-admin calls must trap/return an auth error; getActiveSchoolsCount must remain unchanged.",
-      "reason": "backend/main.mo is truncated and the diff excerpt does not show any new query method for listing active schools, nor the authorization behavior or returned shape required by REQ-12.",
+      "description": "Changed existing saveSchool(school) behavior to be admin-only (traps non-admin callers), which was not requested and may break existing Kepsek/profile setup flows.",
+      "reason": "BuildRequest only asks for a new admin-only API for updating a school for an arbitrary principal (REQ-15) and explicitly requires existing useSaveSchool() behavior to remain unchanged (REQ-17 AC). The diff shows saveSchool now checks AccessControl.isAdmin and traps otherwise.",
       "evidence": [
         "backend/main.mo"
       ]
-    },
-    {
-      "id": "REQ-13",
-      "requirement": "Add a React Query hook in frontend/src/hooks/useQueries.ts to fetch the active schools list under a stable query key, disabled until actor is available, surfacing Error on failure, and providing an empty list in the UI path when no data yet.",
-      "reason": "useQueries.ts is truncated before showing any hook named useGetActiveSchoolsList (though it is imported/used by the UI). The hook implementation, query key, enabled condition, and error handling cannot be verified from the provided excerpt.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/components/admin/ActiveSchoolsSection.tsx"
-      ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.55,
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
     "frontend/src/components/admin/ActiveSchoolsSection.tsx",
+    "frontend/src/components/admin/EditSchoolDialog.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminDashboardPage.tsx",
     "project_state.json"
   ]
 }

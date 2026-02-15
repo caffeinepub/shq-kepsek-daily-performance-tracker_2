@@ -66,6 +66,22 @@ export function useSaveSchool() {
   });
 }
 
+export function useUpdateSchoolForPrincipal() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ principal, school }: { principal: Principal; school: School }) => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.saveSchoolForPrincipal(principal, school);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activeSchoolsList'] });
+      queryClient.invalidateQueries({ queryKey: ['activeSchoolsCount'] });
+    },
+  });
+}
+
 // Daily Report queries
 export function useGetTodayReport() {
   const { actor, isFetching: actorFetching } = useActor();

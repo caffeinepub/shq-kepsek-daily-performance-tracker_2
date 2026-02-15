@@ -149,6 +149,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     saveDailyReport(dailyReport: DailyReport): Promise<void>;
     saveSchool(school: School): Promise<void>;
+    saveSchoolForPrincipal(principal: Principal, school: School): Promise<void>;
 }
 import type { DailyReport as _DailyReport, ExternalBlob as _ExternalBlob, RankedDailyReport as _RankedDailyReport, School as _School, Time as _Time, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -402,6 +403,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.saveSchool(arg0);
+            return result;
+        }
+    }
+    async saveSchoolForPrincipal(arg0: Principal, arg1: School): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveSchoolForPrincipal(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveSchoolForPrincipal(arg0, arg1);
             return result;
         }
     }

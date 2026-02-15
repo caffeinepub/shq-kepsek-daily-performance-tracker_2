@@ -1,45 +1,45 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin UI: Active Schools list (query hook + searchable table)",
+  "title": "Admin: Edit schools from Active Schools list",
   "requirements": [
     {
-      "id": "REQ-13",
-      "summary": "Add a React Query hook to fetch and cache the active schools list with loading/error states.",
+      "id": "REQ-16",
+      "summary": "Add an edit action per row in the Admin Active Schools table that opens a prefilled modal form and saves changes for the selected school’s principal.",
       "acceptanceCriteria": [
-        "A new hook exists in frontend/src/hooks/useQueries.ts to fetch the active schools list.",
-        "The hook is disabled until the backend actor is available (consistent with existing hooks).",
-        "On error (e.g., unauthorized), the hook surfaces an Error object that the UI can render as a friendly message.",
-        "The hook returns an empty list (not undefined) in the UI rendering path when there is no data yet."
+        "Each school row in the Active Schools table provides an Edit action.",
+        "Clicking Edit opens a dialog/modal with a form prefilled with the selected school’s current values (including Active status).",
+        "Submitting the form calls the new admin-only backend API with the selected row’s Principal ID and the edited School object.",
+        "On successful save, the Active Schools list refreshes (React Query invalidation/refetch) and reflects the edited values.",
+        "If Active is toggled off and saved, the edited school disappears from the Active Schools list after refresh (because the list is active-only).",
+        "If the save fails due to authorization, show a clear error message in English indicating the user lacks permission."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/admin/EditSchoolDialog.tsx",
+          "operation": "create",
+          "description": "Create an admin-only edit dialog component (modal) that renders a form for School Name, Region, Principal Name, and Active status; prefill values from the selected SchoolSummary row and submit via the new React Query mutation. Use existing shadcn-ui dialog/form building blocks by importing from the read-only ui components (do not modify them). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/ActiveSchoolsSection.tsx",
+          "operation": "modify",
+          "description": "Add an Actions column with an Edit button per row; wire the button to open the new EditSchoolDialog with the selected row’s principal text and current School values. On save success, close the dialog and rely on React Query invalidation/refetch to refresh the table; on authorization failure, surface an English error message indicating lack of permission. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "summary": "Extend React Query hooks to support admin updating a school for a specified principal and invalidate active schools list/count caches on success without changing existing saveSchool callers.",
+      "acceptanceCriteria": [
+        "A new mutation hook exists for admin school updates by principal ID.",
+        "On success, the mutation invalidates/refetches at minimum: ['activeSchoolsList'] and ['activeSchoolsCount'] so the admin dashboard reflects the latest state.",
+        "The existing useSaveSchool() behavior remains unchanged for its current callers (no regressions to Kepsek profile setup or admin create flows)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a new React Query hook (e.g., useGetActiveSchoolsList) that calls the backend capability to fetch the active schools list and caches it under a stable query key (e.g., ['activeSchoolsList']). Ensure it is enabled only when the actor is available (matching existing patterns), returns an empty array for the UI rendering path when no data is present yet, and exposes errors to the caller for friendly rendering."
-        }
-      ]
-    },
-    {
-      "id": "REQ-14",
-      "summary": "Update the Admin UI to include an \"Active Schools\" section with a searchable table and result count.",
-      "acceptanceCriteria": [
-        "Admin users can see an \"Active Schools\" section in the admin experience (dashboard or management page) without navigating away from the admin area.",
-        "The section renders a table/list with columns: School Name, Region, Principal Name, Principal ID.",
-        "A search input filters the displayed rows in real time (case-insensitive) against name/region/principalName.",
-        "The UI shows a loading skeleton/spinner while fetching and a clear empty state when there are zero active schools.",
-        "All user-facing text added/updated by this change is in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/admin/ActiveSchoolsSection.tsx",
-          "operation": "create",
-          "description": "Create an admin-only UI section component that uses the new active-schools React Query hook to render a table/list of active schools (School Name, Region, Principal Name, Principal ID). Include a client-side, case-insensitive search filter across name/region/principalName, and display a results count that updates with filtering. Show a loading skeleton/spinner while fetching, a clear empty state when there are no schools, and a friendly error message when unauthorized or other failures occur. All user-facing text in this new section must be in English. Use existing app patterns and compose existing shadcn/ui components (do not modify files under frontend/src/components/ui). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Wire the new ActiveSchoolsSection into the admin experience by rendering it within the existing admin dashboard page content (so admins do not navigate away from the admin area). Ensure placement does not disrupt existing dashboard sections and that any new user-facing strings introduced by this wiring are in English."
+          "description": "Add a new React Query mutation hook for admin updates that calls the backend capability to save a School for an arbitrary principal (parse principal from the selected row’s Principal ID string as needed) and on success invalidates ['activeSchoolsList'] and ['activeSchoolsCount']; keep existing useSaveSchool() unchanged."
         }
       ]
     }

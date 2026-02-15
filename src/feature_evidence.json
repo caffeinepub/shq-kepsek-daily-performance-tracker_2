@@ -2,8 +2,29 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-react-query-hook-to-fetch-the-active-schools-list-from-the-backend-and-cache-it-under-a-stable-query-key-with-loading-and-error-states-exposed-to-the-ui",
-      "featureTitle": "Add a React Query hook to fetch the active schools list from the backend and cache it under a stable query key, with loading and error states exposed to the UI.",
+      "featureId": "feature-add-a-frontend-edit-flow-in-the-admin-active-schools-table-so-an-admin-can-edit-school-fields-school-name-region-principal-name-active-status-for-a-selected-row-and-save-changes-back-to-the-backend-for-that-row-s-principal-id",
+      "featureTitle": "Add a frontend edit flow in the Admin \"Active Schools\" table so an admin can edit school fields (School Name, Region, Principal Name, Active status) for a selected row and save changes back to the backend for that row’s Principal ID.",
+      "files": [
+        "frontend/src/components/admin/ActiveSchoolsSection.tsx",
+        "frontend/src/components/admin/EditSchoolDialog.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-16"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-extend-the-react-query-layer-to-support-updating-a-school-for-a-specific-principal-from-the-admin-ui-including-cache-invalidation-for-active-schools-list-and-active-schools-count",
+      "featureTitle": "Extend the React Query layer to support updating a school for a specific principal from the admin UI, including cache invalidation for active schools list and active schools count.",
       "files": [
         "frontend/src/hooks/useQueries.ts"
       ],
@@ -17,28 +38,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-13"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-admin-ui-to-display-a-dedicated-active-schools-section-showing-a-table-list-of-all-active-schools-with-school-name-region-principal-name-and-principal-id-including-a-client-side-search-filter-by-school-name-region-principal-name-and-a-count-of-results",
-      "featureTitle": "Update the Admin UI to display a dedicated \"Active Schools\" section showing a table/list of all active schools with: School Name, Region, Principal Name, and Principal ID, including a client-side search filter (by school name/region/principal name) and a count of results.",
-      "files": [
-        "frontend/src/components/admin/ActiveSchoolsSection.tsx",
-        "frontend/src/pages/AdminDashboardPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-14"
+        "REQ-17"
       ],
       "confidence": "high"
     }

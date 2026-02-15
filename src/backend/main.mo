@@ -62,6 +62,13 @@ actor {
     schools.add(caller, school);
   };
 
+  public shared ({ caller }) func saveSchoolForPrincipal(principal : Principal, school : School) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can update schools");
+    };
+    schools.add(principal, school);
+  };
+
   public query ({ caller }) func getSchool(principal : Principal) : async ?School {
     // Admin can view any school, Kepsek can only view their own
     if (caller != principal and not AccessControl.isAdmin(accessControlState, caller)) {
@@ -181,3 +188,4 @@ actor {
     );
   };
 };
+

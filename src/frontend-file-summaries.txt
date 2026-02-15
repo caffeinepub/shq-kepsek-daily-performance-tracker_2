@@ -1,6 +1,6 @@
 {
   "frontend/src/App.tsx": "Main application component with role-based routing that shows LoginPage for unauthenticated users, AdminDashboardPage for admins, KepsekDashboardPage for Kepsek users, and AccessDeniedPage for unauthorized access.",
-  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including role queries, school/profile management, daily report CRUD operations, admin monitoring data, and active schools list with proper cache invalidation.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including role queries, school/profile management with new useUpdateSchoolForPrincipal mutation for admin edits, daily report CRUD operations, admin monitoring data, and active schools list with proper cache invalidation.",
   "frontend/src/pages/LoginPage.tsx": "Login page with Internet Identity authentication, displaying the app logo and a clean sign-in interface with loading states.",
   "frontend/src/pages/AccessDeniedPage.tsx": "Access denied page shown when authenticated users lack proper role assignment or permissions, with logout functionality.",
   "frontend/src/pages/KepsekDashboardPage.tsx": "Kepsek dashboard displaying school profile information, daily submission status, and either the daily report form or today's submission summary with edit capability.",
@@ -20,5 +20,6 @@
   "frontend/src/index.css": "Global styles with OKLCH color system featuring professional blue-green theme for light mode and appropriate dark mode colors with high-contrast indicators.",
   "frontend/index.html": "HTML entry point with app title, favicon reference to generated icon asset, and root div for React mounting.",
   "frontend/src/lib/utils.ts": "Utility function for merging Tailwind CSS classes using clsx and tailwind-merge.",
-  "frontend/src/components/admin/ActiveSchoolsSection.tsx": "Admin-only UI section displaying a searchable table of active schools with columns for school name, region, principal name, and principal ID, including loading states, error handling, and real-time filtering with result count."
+  "frontend/src/components/admin/ActiveSchoolsSection.tsx": "Admin-only UI section displaying a searchable table of active schools with columns for school name, region, principal name, principal ID, and an Actions column with Edit button that opens the EditSchoolDialog for the selected school.",
+  "frontend/src/components/admin/EditSchoolDialog.tsx": "Dialog component for editing school information with form fields for school name, region, principal name, and active status; prefills values from selected SchoolSummary and calls the admin update mutation with proper error handling."
 }

@@ -98,6 +98,7 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveDailyReport' : IDL.Func([DailyReport], [], []),
   'saveSchool' : IDL.Func([School], [], []),
+  'saveSchoolForPrincipal' : IDL.Func([IDL.Principal, School], [], []),
 });
 
 export const idlInitArgs = [];
@@ -193,6 +194,7 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveDailyReport' : IDL.Func([DailyReport], [], []),
     'saveSchool' : IDL.Func([School], [], []),
+    'saveSchoolForPrincipal' : IDL.Func([IDL.Principal, School], [], []),
   });
 };
 

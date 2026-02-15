@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Let admins view a list of all active schools in the admin area.
+**Goal:** Let a central admin edit any school entry from the Admin “Active Schools” list, even when the admin is not the school’s owning principal.
 
 **Planned changes:**
-- Add an admin-only backend query that returns schools filtered to `active=true`, including school name, region, principal name, active flag, and the associated Principal (Kepsek) ID.
-- Add a React Query hook to fetch and cache the active schools list with loading/error states, returning an empty list when no data is available yet.
-- Update the Admin UI to include an “Active Schools” section with a searchable table/list (School Name, Region, Principal Name, Principal ID), result count, loading state, and empty state (English text).
+- Add an admin-only backend API to update a School record under an arbitrary provided Principal key (not the caller).
+- Add an Edit action per row in the Admin “Active Schools” table that opens a prefilled modal/form to edit School Name, Region, Principal Name, and Active status.
+- Extend the React Query data layer with an admin update-school mutation by principal ID, and invalidate/refetch the active schools list and active schools count on success.
 
-**User-visible outcome:** Admin users can see an “Active Schools” section in the admin area showing a searchable list/table of all active schools with key details and a count of matching results.
+**User-visible outcome:** A central admin can click Edit on a school in the Active Schools table, update its details (including toggling Active off), save changes, and see the list refresh—removing the school if it was set inactive; non-admin users see a clear permission error if they attempt the save.

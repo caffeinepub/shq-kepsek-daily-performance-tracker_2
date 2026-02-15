@@ -75,6 +75,7 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveDailyReport' : ActorMethod<[DailyReport], undefined>,
   'saveSchool' : ActorMethod<[School], undefined>,
+  'saveSchoolForPrincipal' : ActorMethod<[Principal, School], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
