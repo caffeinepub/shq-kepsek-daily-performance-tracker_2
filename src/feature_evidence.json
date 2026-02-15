@@ -1,0 +1,46 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-a-react-query-hook-to-fetch-the-active-schools-list-from-the-backend-and-cache-it-under-a-stable-query-key-with-loading-and-error-states-exposed-to-the-ui",
+      "featureTitle": "Add a React Query hook to fetch the active schools list from the backend and cache it under a stable query key, with loading and error states exposed to the UI.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-13"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-admin-ui-to-display-a-dedicated-active-schools-section-showing-a-table-list-of-all-active-schools-with-school-name-region-principal-name-and-principal-id-including-a-client-side-search-filter-by-school-name-region-principal-name-and-a-count-of-results",
+      "featureTitle": "Update the Admin UI to display a dedicated \"Active Schools\" section showing a table/list of all active schools with: School Name, Region, Principal Name, and Principal ID, including a client-side search filter (by school name/region/principal name) and a count of results.",
+      "files": [
+        "frontend/src/components/admin/ActiveSchoolsSection.tsx",
+        "frontend/src/pages/AdminDashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-14"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Admin UI: Active Schools list (query hook + searchable table)",
+  "requirements": [
+    {
+      "id": "REQ-13",
+      "summary": "Add a React Query hook to fetch and cache the active schools list with loading/error states.",
+      "acceptanceCriteria": [
+        "A new hook exists in frontend/src/hooks/useQueries.ts to fetch the active schools list.",
+        "The hook is disabled until the backend actor is available (consistent with existing hooks).",
+        "On error (e.g., unauthorized), the hook surfaces an Error object that the UI can render as a friendly message.",
+        "The hook returns an empty list (not undefined) in the UI rendering path when there is no data yet."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a new React Query hook (e.g., useGetActiveSchoolsList) that calls the backend capability to fetch the active schools list and caches it under a stable query key (e.g., ['activeSchoolsList']). Ensure it is enabled only when the actor is available (matching existing patterns), returns an empty array for the UI rendering path when no data is present yet, and exposes errors to the caller for friendly rendering."
+        }
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "summary": "Update the Admin UI to include an \"Active Schools\" section with a searchable table and result count.",
+      "acceptanceCriteria": [
+        "Admin users can see an \"Active Schools\" section in the admin experience (dashboard or management page) without navigating away from the admin area.",
+        "The section renders a table/list with columns: School Name, Region, Principal Name, Principal ID.",
+        "A search input filters the displayed rows in real time (case-insensitive) against name/region/principalName.",
+        "The UI shows a loading skeleton/spinner while fetching and a clear empty state when there are zero active schools.",
+        "All user-facing text added/updated by this change is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/admin/ActiveSchoolsSection.tsx",
+          "operation": "create",
+          "description": "Create an admin-only UI section component that uses the new active-schools React Query hook to render a table/list of active schools (School Name, Region, Principal Name, Principal ID). Include a client-side, case-insensitive search filter across name/region/principalName, and display a results count that updates with filtering. Show a loading skeleton/spinner while fetching, a clear empty state when there are no schools, and a friendly error message when unauthorized or other failures occur. All user-facing text in this new section must be in English. Use existing app patterns and compose existing shadcn/ui components (do not modify files under frontend/src/components/ui). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Wire the new ActiveSchoolsSection into the admin experience by rendering it within the existing admin dashboard page content (so admins do not navigate away from the admin area). Ensure placement does not disrupt existing dashboard sections and that any new user-facing strings introduced by this wiring are in English."
+        }
+      ]
+    }
+  ]
+}

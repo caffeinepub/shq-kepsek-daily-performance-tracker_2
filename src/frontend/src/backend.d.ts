@@ -1,0 +1,59 @@
+import type { Principal } from "@icp-sdk/core/principal";
+export interface Some<T> {
+    __kind__: "Some";
+    value: T;
+}
+export interface None {
+    __kind__: "None";
+}
+export type Option<T> = Some<T> | None;
+export class ExternalBlob {
+    getBytes(): Promise<Uint8Array<ArrayBuffer>>;
+    getDirectURL(): string;
+    static fromURL(url: string): ExternalBlob;
+    static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
+    withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
+}
+export type Time = bigint;
+export interface School {
+    region: string;
+    active: boolean;
+    name: string;
+    principalName: string;
+}
+export interface RankedDailyReport {
+    kepsek: Principal;
+    dailyReport: DailyReport;
+}
+export interface SchoolSummary {
+    principal: Principal;
+    school: School;
+}
+export interface DailyReport {
+    programProblemSolvingScore: bigint;
+    waliSantriResponseScore: bigint;
+    date: Time;
+    totalScore: bigint;
+    teacherControlScore: bigint;
+    attendanceScore: bigint;
+    classControlScore: bigint;
+    attendancePhoto?: ExternalBlob;
+}
+export enum UserRole {
+    admin = "admin",
+    user = "user",
+    guest = "guest"
+}
+export interface backendInterface {
+    assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    getActiveSchoolsCount(): Promise<bigint>;
+    getActiveSchoolsList(): Promise<Array<SchoolSummary>>;
+    getAllDailyReportsForKepsek(): Promise<Array<DailyReport>>;
+    getCallerUserRole(): Promise<UserRole>;
+    getDailyReport(principal: Principal, date: Time): Promise<DailyReport | null>;
+    getSchool(principal: Principal): Promise<School | null>;
+    getTodayReports(): Promise<Array<RankedDailyReport>>;
+    isCallerAdmin(): Promise<boolean>;
+    saveDailyReport(dailyReport: DailyReport): Promise<void>;
+    saveSchool(school: School): Promise<void>;
+}

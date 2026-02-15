@@ -1,2 +1,3 @@
-# shq-kepsek-daily-performance-tracker_2
-Exported from Caffeine project: SHQ Kepsek Daily Performance Tracker
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

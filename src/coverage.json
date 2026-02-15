@@ -1,0 +1,65 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-15T04:51:37.874Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 3,
+    "implemented": 2,
+    "items": [
+      {
+        "id": "REQ-12",
+        "summary": "Add an admin-only backend query to return a list of schools filtered to only those with active=true, including enough data to display each school in a UI list (school name, region, principal name, and the Kepsek/Principal ID).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-13",
+        "summary": "Add a React Query hook to fetch the active schools list from the backend and cache it under a stable query key, with loading and error states exposed to the UI.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-14",
+        "summary": "Update the Admin UI to display a dedicated \"Active Schools\" section showing a table/list of all active schools with: School Name, Region, Principal Name, and Principal ID, including a client-side search filter (by school name/region/principal name) and a count of results.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/admin/ActiveSchoolsSection.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/admin/ActiveSchoolsSection.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "build-request.json",
+    "build-template/README.md",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/admin/ActiveSchoolsSection.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDashboardPage.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
