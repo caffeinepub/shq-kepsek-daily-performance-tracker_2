@@ -1,112 +1,88 @@
 {
   "kind": "build_request",
-  "title": "Rebuild: Unrestricted daily report editing by date, date selection before attendance, and admin report download",
-  "priority": "normal",
+  "title": "Fix principal daily report fields not updating and ensure per-day save/sync to admin",
+  "projectName": "School Daily Reports",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove any “today-only” restriction so principals (kepala sekolah) can view and edit daily reports for any selected date, including past dates, with no date-based edit lockouts.",
-      "target": "frontend",
+      "text": "Fix the principal (Kepsek) daily report save/update flow so edited values persist and immediately appear updated in the Kepsek dashboard for the selected date, including these fields: daily attendance (arrival time, departure time) + attendance photo, class control, teacher control, wali santri response, and program/problem solving.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Kepala sekolah bisa edit laporan harian tanpa batasan tanggal.",
-          "Tidak ada pembatasan bahwa hanya laporan hari ini yang bisa diubah."
+          "field yang tidak berfungsi / tidak dapat terupdate (absensi harian (jam datang dan jam pulang) + foto, kontrol kelas, kontrol guru, respon wali santri, program dan problem solving)."
         ]
       },
       "acceptanceCriteria": [
-        "On the principal dashboard, selecting any calendar date allows opening the daily report for that date (if it exists) and editing it.",
-        "The UI does not display or enforce any rule that only today's report can be edited.",
-        "Edits for a past/future selected date are allowed and the Save action is enabled."
+        "From the Kepsek dashboard, editing an existing report for a selected date and pressing Save persists the new values in the backend.",
+        "After saving, the Kepsek dashboard shows the updated values without reverting to the previous data (no stale cache behavior).",
+        "Refreshing the browser after saving still shows the updated values for that same selected date.",
+        "All listed categories (attendance times+photo, class control, teacher control, wali santri response, program/problem solving) round-trip correctly (save -> fetch -> render)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure saving an edited daily report persists immediately to the backend for the currently selected date (date-scoped overwrite for that day), and the principal dashboard shows the updated saved version after the save completes.",
+      "text": "Ensure the daily report is stored and edited strictly per day: the system must load the report for the selected calendar day, overwrite the existing report for that same day when saving again, and show an empty/new report form for a day that has no saved report (so a new day does not prefill yesterday’s data).",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Data hasil edit langsung tersimpan ke backend."
+          "laporan harian kepala sekolah disimpan perhari dan di update perhari",
+          "saat kepala sekola menekan tombol simpan, datanya tersimpan sementara terlebih dahulu, jika harinya sudah lewat maka laporan sebelumnya kosong untuk digantikan laporan hari berikutnya."
         ]
       },
       "acceptanceCriteria": [
-        "Submitting the daily report form calls the backend save operation and overwrites the report for the selected date (same day-key).",
-        "After a successful save, the principal dashboard reloads/refetches the selected date’s report and displays the latest saved values (including photo if present).",
-        "Refreshing the page after saving still shows the updated report for that selected date."
+        "Saving a report for a given day overwrites that same day’s report (no duplicate entries for one day).",
+        "Selecting a different day that has no report displays an empty form (no carry-over of previous day values).",
+        "Selecting a day that already has a report displays that day’s saved values and allows editing.",
+        "The per-day key used by frontend and backend is consistent so save and fetch for the same selected date resolve to the same stored record."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Make the admin dashboard automatically reflect the latest saved report data after a principal edits/saves a report (for the same selected date), without requiring a manual full-page reload.",
+      "text": "After a Kepsek saves a daily report, ensure admin/management views reflect the update for that date by invalidating/refetching the relevant admin monitoring queries so the updated report appears in admin dashboards for the same day.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Dashboard admin otomatis menampilkan versi terbaru."
+          "hasilnya terupdate otomatis di data/dahsboard admin/manajemen."
         ]
       },
       "acceptanceCriteria": [
-        "Admin dashboard monitoring data for a selected date updates to the latest backend state after a report is saved for that date (e.g., via React Query invalidation and/or periodic refetch).",
-        "If an admin is viewing the same date that was edited, the new values appear in the monitoring table/detail view shortly after the save (without a hard refresh)."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Add a required date selection step before taking attendance (absen) in the principal flow, so the user explicitly chooses a report date before completing attendance-related inputs.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "tampilkan untuk memilih tanggal sebelum absen"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The principal UI clearly prompts for a date selection before attendance inputs are enabled/usable.",
-        "Attendance-related UI (e.g., attendance photo/time fields) is disabled or hidden until a valid date is selected.",
-        "Once a date is selected, attendance can be completed for that selected date and saved to the backend under that date."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Add a report download feature on the admin dashboard to download reports for the currently selected date.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "didashboard admin tambahkan fitur download laporan"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin dashboard includes a clearly visible download control near the date selector (or in the dashboard header area).",
-        "Clicking download generates and downloads a file containing the reports for the currently selected date (at minimum: principal/school identifiers and daily report fields, including scores and notes; photo should be represented by presence/URL/identifier if binary is not embedded).",
-        "The downloaded content matches what the admin dashboard shows for that selected date (same dataset source as monitoring rows/reports-for-date)."
+        "After a Kepsek saves a report for a date, the admin dashboard data for that date updates to match the saved report after the next fetch/refresh cycle.",
+        "Admin monitoring rows and any per-date report lists show the updated report content for that date (not the previous version)."
       ]
     }
   ],
   "constraints": [
+    "Use English for any user-facing text added/changed as part of this fix.",
     "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
-    "Only add backend state migration (backend/migration.mo) if a persistent state schema change is required; otherwise do not create/modify migration.",
-    "Do not edit files under frontend immutablePaths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui). Compose existing UI components instead."
+    "Do not edit files under frontend/src/components/ui, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, or frontend/src/main.tsx."
   ],
   "nonGoals": [
-    "Do not add third-party authentication providers; continue using Internet Identity only.",
-    "Do not add external databases or non-IC storage systems.",
-    "Do not implement real-time features using WebSockets/push notifications; rely on React Query refetch/invalidation/polling patterns instead.",
-    "Do not redesign unrelated admin analytics or school management features beyond what is needed for date selection, refresh behavior, and report download."
+    "Do not add new report categories beyond the fields the user listed.",
+    "Do not implement third-party auth or integrations; use existing Internet Identity flow.",
+    "Do not add real-time/WebSocket syncing; rely on existing fetch/invalidation behavior."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

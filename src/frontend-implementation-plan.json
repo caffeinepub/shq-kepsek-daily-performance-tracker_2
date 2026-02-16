@@ -1,124 +1,79 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Unrestricted date-scoped daily report editing, required date selection before attendance, admin auto-refresh, and admin report download",
+  "title": "Fix Kepsek daily report per-day save/update and admin refresh (frontend)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Allow principals to view and edit daily reports for any selected date without any today-only UI restrictions or date-based edit lockouts.",
+      "summary": "Ensure edited Kepsek daily report fields (attendance times+photo, class/teacher control, wali santri response, program/problem solving) persist and immediately render updated for the selected date.",
       "acceptanceCriteria": [
-        "On the principal dashboard, selecting any calendar date allows opening the daily report for that date (if it exists) and editing it.",
-        "The UI does not display or enforce any rule that only today's report can be edited.",
-        "Edits for a past/future selected date are allowed and the Save action is enabled."
+        "From the Kepsek dashboard, editing an existing report for a selected date and pressing Save persists the new values in the backend.",
+        "After saving, the Kepsek dashboard shows the updated values without reverting to the previous data (no stale cache behavior).",
+        "Refreshing the browser after saving still shows the updated values for that same selected date.",
+        "All listed categories (attendance times+photo, class control, teacher control, wali santri response, program/problem solving) round-trip correctly (save -> fetch -> render)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/KepsekDashboardPage.tsx",
+          "path": "frontend/src/components/kepsek/AttendancePhotoField.tsx",
           "operation": "modify",
-          "description": "Audit and remove any UI logic that restricts editing to today; ensure the edit flow (summary -> edit form) works for whichever date is currently selected in the date selector."
+          "description": "Fix attendance photo UI state so it stays in sync with the form: update preview when the `value` prop changes (e.g., after loading an existing report for a date or after saving), and ensure remove/reset clears preview and input reliably. Also change any modified validation/upload messages to English to satisfy the language constraint. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/kepsek/TodaySubmissionSummary.tsx",
+          "path": "frontend/src/components/kepsek/DailyReportForm.tsx",
           "operation": "modify",
-          "description": "Ensure the summary component remains date-agnostic (no today-only language/logic affecting edit availability) and continues to show the Edit action for the selected date’s submitted report."
+          "description": "Harden the save/update flow for all listed fields by ensuring the form state re-initializes correctly when `existingReport` changes and that the photo/time/note fields being edited are the same ones being submitted. Where helpful, force controlled re-mounting for date/report switches (e.g., via a stable `key`) to prevent stale form state. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Improve post-save cache consistency: after saving a daily report, update the per-day query cache and then invalidate/refetch the per-day report query so Kepsek sees the backend-confirmed data (prevents stale cache behavior). Keep query keys aligned with the existing per-day queryKey scheme. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Ensure saving an edited daily report persists for the currently selected date and the principal UI immediately shows the backend-saved version for that same selected date.",
+      "summary": "Make daily reports load/edit strictly per selected calendar day (no cross-day prefill) and keep the per-day key consistent across selection, save, and fetch.",
       "acceptanceCriteria": [
-        "Submitting the daily report form calls the backend save operation and overwrites the report for the selected date (same day-key).",
-        "After a successful save, the principal dashboard reloads/refetches the selected date’s report and displays the latest saved values (including photo if present).",
-        "Refreshing the page after saving still shows the updated report for that selected date."
+        "Saving a report for a given day overwrites that same day’s report (no duplicate entries for one day).",
+        "Selecting a different day that has no report displays an empty form (no carry-over of previous day values).",
+        "Selecting a day that already has a report displays that day’s saved values and allows editing.",
+        "The per-day key used by frontend and backend is consistent so save and fetch for the same selected date resolve to the same stored record."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/kepsek/DailyReportForm.tsx",
+          "path": "frontend/src/pages/KepsekDashboardPage.tsx",
           "operation": "modify",
-          "description": "Confirm the saved DailyReport is always constructed using the currently selected day key (selectedDayKey) so the save is date-scoped; keep Save enabled for past/future dates and keep form state correctly synced when switching dates."
+          "description": "Ensure strict per-day behavior in the Kepsek dashboard by tying the rendered report form/summary to the selected day key (e.g., keyed rendering) so switching dates cannot reuse prior-day state; keep using timezone-safe date parsing utilities already present. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Make admin date selection timezone-safe and consistent with the app’s day-key logic by replacing `new Date(inputValue)` parsing/formatting with the shared dayKey utilities (parseDateInputSafe/formatDateForInput) so the selected calendar day aligns with stored per-day reports. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Strengthen React Query invalidation/refetch after save so the selected date’s report query is refetched and stays consistent across navigation/refresh (principal report query keys and admin date-scoped query keys)."
-        },
-        {
-          "path": "frontend/src/pages/KepsekDashboardPage.tsx",
-          "operation": "modify",
-          "description": "After a successful save, ensure the page refetches the selected date’s report and renders the latest saved backend state for that same selected date (including photo rendering via ExternalBlob direct URL when present)."
+          "description": "Confirm the per-day query keys and invalidations consistently use the same day key string (from getStartOfDayNanoseconds) for save, fetch, and cache updates, so selecting a day with no report yields `null` and resets the form. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Make the admin dashboard automatically update to the latest saved report data for a selected date after a principal saves, without a full-page reload.",
+      "summary": "After Kepsek saves a daily report, ensure admin monitoring views refresh to reflect the updated report for that date via query invalidation/refetch.",
       "acceptanceCriteria": [
-        "Admin dashboard monitoring data for a selected date updates to the latest backend state after a report is saved for that date (e.g., via React Query invalidation and/or periodic refetch).",
-        "If an admin is viewing the same date that was edited, the new values appear in the monitoring table/detail view shortly after the save (without a hard refresh)."
+        "After a Kepsek saves a report for a date, the admin dashboard data for that date updates to match the saved report after the next fetch/refresh cycle.",
+        "Admin monitoring rows and any per-date report lists show the updated report content for that date (not the previous version)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a React Query refetch strategy for admin date-scoped queries (e.g., refetchInterval and/or refetchOnWindowFocus) for monitoring rows and/or reports-for-date so the admin view updates shortly after principals save."
+          "description": "Strengthen admin-side sync after Kepsek saves: invalidate and (where appropriate) refetch the admin per-date queries that back the monitoring table and per-date report lists for the saved date key, ensuring the next admin fetch/refresh cycle shows the updated content. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/admin/MonitoringTable.tsx",
           "operation": "modify",
-          "description": "Ensure the monitoring table and its selected detail modal stay in sync with refreshed query data for the selected date (e.g., deriving selectedRow from latest rows remains correct so updated report values appear without reload)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Require principals to explicitly select a report date before attendance inputs become usable in the daily report flow.",
-      "acceptanceCriteria": [
-        "The principal UI clearly prompts for a date selection before attendance inputs are enabled/usable.",
-        "Attendance-related UI (e.g., attendance photo/time fields) is disabled or hidden until a valid date is selected.",
-        "Once a date is selected, attendance can be completed for that selected date and saved to the backend under that date."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/KepsekDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Change the principal flow to introduce an explicit, required date selection step (e.g., start with no selected date and prompt the user); hide or disable the daily report form until a valid date is selected, then pass the selected day key into the form."
-        },
-        {
-          "path": "frontend/src/components/kepsek/DailyReportForm.tsx",
-          "operation": "modify",
-          "description": "Support being disabled/hidden until a date is selected (e.g., via a new prop from KepsekDashboardPage); ensure attendance-related inputs are not usable until the date precondition is satisfied."
-        },
-        {
-          "path": "frontend/src/localization/dashboardId.ts",
-          "operation": "modify",
-          "description": "Add/adjust Indonesian UI strings needed to clearly prompt for required date selection before attendance (date-required helper text, disabled-state explanation)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Add an admin dashboard download control to export reports for the currently selected date based on the same dataset shown in monitoring.",
-      "acceptanceCriteria": [
-        "Admin dashboard includes a clearly visible download control near the date selector (or in the dashboard header area).",
-        "Clicking download generates and downloads a file containing the reports for the currently selected date (at minimum: principal/school identifiers and daily report fields, including scores and notes; photo should be represented by presence/URL/identifier if binary is not embedded).",
-        "The downloaded content matches what the admin dashboard shows for that selected date (same dataset source as monitoring rows/reports-for-date)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Add a download button/control near the existing date selector; wire it to generate and download an export for the currently selected date using the same underlying admin monitoring dataset."
-        },
-        {
-          "path": "frontend/src/utils/reportDownload.ts",
-          "operation": "create",
-          "description": "Implement a small utility to transform admin monitoring rows/reports into a downloadable file (CSV or JSON) including principal/school identifiers and daily report fields; represent attendancePhoto via presence and/or getDirectURL() when available; trigger browser download via Blob + object URL."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Expose/reuse the admin date-scoped data needed for export (prefer the same query used by MonitoringTable for the selected date) so the downloaded content matches what the admin dashboard displays."
+          "description": "Ensure the monitoring table detail dialog always derives the selected row/report from the latest query data (not stale captured objects) so updated per-day report content shows after invalidation/refetch. Verify the component's usage instructions before implementing."
         }
       ]
     }

@@ -1,44 +1,48 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T13:50:00.773Z",
+  "generatedAt": "2026-02-16T16:00:18.339Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 5,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Remove any “today-only” restriction so principals (kepala sekolah) can view and edit daily reports for any selected date, including past dates, with no date-based edit lockouts.",
+        "summary": "Fix the principal (Kepsek) daily report save/update flow so edited values persist and immediately appear updated in the Kepsek dashboard for the selected date, including these fields: daily attendance (arrival time, departure time) + attendance photo, class control, teacher control, wali santri response, and program/problem solving.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/KepsekDashboardPage.tsx",
-          "frontend/src/components/kepsek/TodaySubmissionSummary.tsx"
+          "frontend/src/components/kepsek/AttendancePhotoField.tsx",
+          "frontend/src/components/kepsek/DailyReportForm.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/pages/KepsekDashboardPage.tsx"
+          "frontend/src/components/kepsek/AttendancePhotoField.tsx",
+          "frontend/src/components/kepsek/DailyReportForm.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Ensure saving an edited daily report persists immediately to the backend for the currently selected date (date-scoped overwrite for that day), and the principal dashboard shows the updated saved version after the save completes.",
+        "summary": "Ensure the daily report is stored and edited strictly per day: the system must load the report for the selected calendar day, overwrite the existing report for that same day when saving again, and show an empty/new report form for a day that has no saved report (so a new day does not prefill yesterday’s data).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/kepsek/DailyReportForm.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/KepsekDashboardPage.tsx"
+          "frontend/src/pages/KepsekDashboardPage.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/KepsekDashboardPage.tsx"
+          "frontend/src/pages/KepsekDashboardPage.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Make the admin dashboard automatically reflect the latest saved report data after a principal edits/saves a report (for the same selected date), without requiring a manual full-page reload.",
+        "summary": "After a Kepsek saves a daily report, ensure admin/management views reflect the update for that date by invalidating/refetching the relevant admin monitoring queries so the updated report appears in admin dashboards for the same day.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useQueries.ts",
@@ -47,49 +51,22 @@
         "matchedFiles": [
           "frontend/src/hooks/useQueries.ts"
         ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Add a required date selection step before taking attendance (absen) in the principal flow, so the user explicitly chooses a report date before completing attendance-related inputs.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/KepsekDashboardPage.tsx",
-          "frontend/src/components/kepsek/DailyReportForm.tsx",
-          "frontend/src/localization/dashboardId.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/KepsekDashboardPage.tsx",
-          "frontend/src/localization/dashboardId.ts"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Add a report download feature on the admin dashboard to download reports for the currently selected date.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/AdminDashboardPage.tsx",
-          "frontend/src/utils/reportDownload.ts",
-          "frontend/src/hooks/useQueries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/AdminDashboardPage.tsx",
-          "frontend/src/utils/reportDownload.ts",
-          "frontend/src/hooks/useQueries.ts"
-        ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/kepsek/AttendancePhotoField.tsx",
+    "frontend/src/components/kepsek/DailyReportForm.tsx",
+    "frontend/src/config.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/localization/dashboardId.ts",
     "frontend/src/pages/AdminDashboardPage.tsx",
     "frontend/src/pages/KepsekDashboardPage.tsx",
-    "frontend/src/utils/reportDownload.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

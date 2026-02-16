@@ -12,6 +12,7 @@ import { dashboardId } from '../localization/dashboardId';
 import { useGetDailyMonitoringRows } from '../hooks/useQueries';
 import { downloadReportsAsCSV } from '../utils/reportDownload';
 import { toast } from 'sonner';
+import { parseDateInputSafe, formatDateForInput } from '../utils/dayKey';
 
 interface AdminDashboardPageProps {
   onNavigateToManagement: () => void;
@@ -22,17 +23,9 @@ export default function AdminDashboardPage({ onNavigateToManagement }: AdminDash
   const { data: monitoringRows, isLoading: downloadLoading } = useGetDailyMonitoringRows(selectedDate);
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = new Date(e.target.value);
-    if (!isNaN(newDate.getTime())) {
-      setSelectedDate(newDate);
-    }
-  };
-
-  const formatDateForInput = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    // Use timezone-safe parsing to avoid UTC-based day shifts
+    const newDate = parseDateInputSafe(e.target.value);
+    setSelectedDate(newDate);
   };
 
   const handleDownloadReport = () => {

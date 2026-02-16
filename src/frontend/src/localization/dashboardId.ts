@@ -124,6 +124,8 @@ export const dashboardId = {
     schoolName: 'Nama Sekolah',
     region: 'Wilayah',
     principalName: 'Kepala Sekolah',
+    reportTitle: 'Laporan Harian',
+    editReport: 'Edit Laporan',
 
     // Date Selector
     dateSelector: {
@@ -131,9 +133,11 @@ export const dashboardId = {
       description: 'Pilih tanggal untuk melihat atau mengubah laporan harian',
       requiredDescription: 'Silakan pilih tanggal terlebih dahulu sebelum mengisi laporan',
       selectDate: 'Pilih Tanggal',
+      selectedDateLabel: 'Tanggal yang dipilih',
       today: 'Hari Ini',
       viewing: 'Menampilkan laporan untuk:',
       pleaseSelectDate: 'Silakan pilih tanggal terlebih dahulu untuk melihat atau mengisi laporan',
+      promptSelectDate: 'Silakan pilih tanggal di atas untuk melihat atau mengisi laporan harian',
     },
 
     // Error States

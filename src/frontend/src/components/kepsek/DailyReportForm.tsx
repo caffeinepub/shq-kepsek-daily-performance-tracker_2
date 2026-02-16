@@ -20,6 +20,12 @@ interface DailyReportFormProps {
   onSuccess?: () => void;
 }
 
+/**
+ * Converts a time string (HH:MM) to nanoseconds timestamp.
+ * Uses the provided baseDate (day key) to ensure the time is anchored to the correct calendar day.
+ * 
+ * CRITICAL: Always use selectedDayKey as baseDate to ensure saves overwrite the correct day's report.
+ */
 function timeToNanoseconds(timeString: string, baseDate: bigint): bigint {
   if (!timeString) return BigInt(0);
   const [hours, minutes] = timeString.split(':').map(Number);
@@ -27,6 +33,10 @@ function timeToNanoseconds(timeString: string, baseDate: bigint): bigint {
   return baseDate + BigInt(millisInDay) * BigInt(1_000_000);
 }
 
+/**
+ * Converts a nanoseconds timestamp to a time string (HH:MM).
+ * Extracts only the time portion, ignoring the date.
+ */
 function nanosecondsToTime(nanos: bigint): string {
   if (nanos === BigInt(0)) return '';
   const milliseconds = Number(nanos / BigInt(1_000_000));
@@ -53,6 +63,7 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
   const saveMutation = useSaveDailyReport();
 
   // Sync form state with existingReport when it changes
+  // Use selectedDayKey as dependency to force reset when date changes
   useEffect(() => {
     if (existingReport) {
       setAttendancePhoto(existingReport.attendancePhoto || null);
@@ -82,7 +93,7 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
       setProgramSolvingChecked(false);
       setCatatanPermasalahanProgram('');
     }
-  }, [existingReport]);
+  }, [existingReport, selectedDayKey]);
 
   const calculateScore = () => {
     let score = 0;
@@ -114,6 +125,9 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
       return;
     }
 
+    // CRITICAL: Use selectedDayKey for all time fields to ensure the report
+    // is saved under the correct calendar day, preventing duplicate entries
+    // and ensuring updates overwrite the existing report for that day.
     const report: DailyReport = {
       date: timeToNanoseconds(arrivalTime, selectedDayKey),
       attendanceScore: BigInt(attendancePhoto && arrivalTime && departureTime ? 20 : 0),
@@ -158,7 +172,7 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
         </CardContent>
       </Card>
 
-      {/* Section 1: Attendance & Photo */}
+      {/* Attendance Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -168,30 +182,27 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
           <CardDescription>{dashboardId.kepsek.form.attendance.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <AttendancePhotoField
-            value={attendancePhoto}
-            onChange={setAttendancePhoto}
-          />
-          
+          <AttendancePhotoField value={attendancePhoto} onChange={setAttendancePhoto} />
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="arrival-time">{dashboardId.kepsek.form.attendance.arrivalTime}</Label>
+              <Label htmlFor="arrival-time">{dashboardId.kepsek.form.attendance.arrivalTime} *</Label>
               <Input
                 id="arrival-time"
                 type="time"
                 value={arrivalTime}
                 onChange={(e) => setArrivalTime(e.target.value)}
-                className="mt-1.5"
+                required
               />
             </div>
             <div>
-              <Label htmlFor="departure-time">{dashboardId.kepsek.form.attendance.departureTime}</Label>
+              <Label htmlFor="departure-time">{dashboardId.kepsek.form.attendance.departureTime} *</Label>
               <Input
                 id="departure-time"
                 type="time"
                 value={departureTime}
                 onChange={(e) => setDepartureTime(e.target.value)}
-                className="mt-1.5"
+                required
               />
             </div>
           </div>
@@ -203,14 +214,13 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
               value={catatanPresensi}
               onChange={(e) => setCatatanPresensi(e.target.value)}
               placeholder={dashboardId.kepsek.form.attendance.placeholder}
-              className="mt-1.5"
               rows={3}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Section 2: Class Control */}
+      {/* Class Control Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -224,7 +234,7 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
             <Checkbox
               id="class-control"
               checked={classControlChecked}
-              onCheckedChange={(checked) => setClassControlChecked(checked as boolean)}
+              onCheckedChange={(checked) => setClassControlChecked(checked === true)}
             />
             <Label htmlFor="class-control" className="cursor-pointer">
               {dashboardId.kepsek.form.classControl.checkbox}
@@ -238,14 +248,13 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
               value={catatanAmatanKelas}
               onChange={(e) => setCatatanAmatanKelas(e.target.value)}
               placeholder={dashboardId.kepsek.form.classControl.placeholder}
-              className="mt-1.5"
               rows={3}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Section 3: Teacher Control */}
+      {/* Teacher Control Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -259,7 +268,7 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
             <Checkbox
               id="teacher-control"
               checked={teacherControlChecked}
-              onCheckedChange={(checked) => setTeacherControlChecked(checked as boolean)}
+              onCheckedChange={(checked) => setTeacherControlChecked(checked === true)}
             />
             <Label htmlFor="teacher-control" className="cursor-pointer">
               {dashboardId.kepsek.form.teacherControl.checkbox}
@@ -273,14 +282,13 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
               value={catatanMonitoringGuru}
               onChange={(e) => setCatatanMonitoringGuru(e.target.value)}
               placeholder={dashboardId.kepsek.form.teacherControl.placeholder}
-              className="mt-1.5"
               rows={3}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Section 4: Parent Response */}
+      {/* Wali Santri Response Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -294,7 +302,7 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
             <Checkbox
               id="wali-santri"
               checked={waliSantriChecked}
-              onCheckedChange={(checked) => setWaliSantriChecked(checked as boolean)}
+              onCheckedChange={(checked) => setWaliSantriChecked(checked === true)}
             />
             <Label htmlFor="wali-santri" className="cursor-pointer">
               {dashboardId.kepsek.form.parentResponse.checkbox}
@@ -308,14 +316,13 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
               value={catatanWaliSantri}
               onChange={(e) => setCatatanWaliSantri(e.target.value)}
               placeholder={dashboardId.kepsek.form.parentResponse.placeholder}
-              className="mt-1.5"
               rows={3}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Section 5: Program & Problem Solving */}
+      {/* Program & Problem Solving Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -329,7 +336,7 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
             <Checkbox
               id="program-solving"
               checked={programSolvingChecked}
-              onCheckedChange={(checked) => setProgramSolvingChecked(checked as boolean)}
+              onCheckedChange={(checked) => setProgramSolvingChecked(checked === true)}
             />
             <Label htmlFor="program-solving" className="cursor-pointer">
               {dashboardId.kepsek.form.programSolving.checkbox}
@@ -343,7 +350,6 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
               value={catatanPermasalahanProgram}
               onChange={(e) => setCatatanPermasalahanProgram(e.target.value)}
               placeholder={dashboardId.kepsek.form.programSolving.placeholder}
-              className="mt-1.5"
               rows={3}
             />
           </div>
@@ -351,18 +357,16 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
       </Card>
 
       {/* Submit Button */}
-      <Button
-        type="submit"
-        size="lg"
-        className="w-full"
-        disabled={saveMutation.isPending}
-      >
-        {saveMutation.isPending
-          ? dashboardId.common.saving
-          : existingReport
-          ? dashboardId.kepsek.form.submitUpdate
-          : dashboardId.kepsek.form.submitNew}
-      </Button>
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={saveMutation.isPending}
+          className="min-w-[200px]"
+        >
+          {saveMutation.isPending ? dashboardId.common.saving : (existingReport ? dashboardId.kepsek.form.submitUpdate : dashboardId.kepsek.form.submitNew)}
+        </Button>
+      </div>
     </form>
   );
 }

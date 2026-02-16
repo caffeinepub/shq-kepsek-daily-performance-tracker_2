@@ -11,13 +11,13 @@ import TodaySubmissionSummary from '../components/kepsek/TodaySubmissionSummary'
 import { AlertCircle, School, MapPin, User, Copy, CheckCircle2, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { dashboardId } from '../localization/dashboardId';
-import { getStartOfDayNanoseconds } from '../utils/dayKey';
+import { getStartOfDayNanoseconds, parseDateInputSafe, formatDateForInput } from '../utils/dayKey';
 
 export default function KepsekDashboardPage() {
   const { identity } = useInternetIdentity();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const { data: school, isLoading: schoolLoading, error: schoolError, refetch: refetchSchool } = useGetCallerSchool();
-  const { data: selectedReport, isLoading: reportLoading, error: reportError, refetch: refetchReport } = useGetReportForDate(selectedDate || new Date());
+  const { data: selectedReport, isLoading: reportLoading, error: reportError } = useGetReportForDate(selectedDate || new Date());
   const [isEditing, setIsEditing] = useState(false);
 
   const principalId = identity?.getPrincipal().toString();
@@ -30,23 +30,16 @@ export default function KepsekDashboardPage() {
     }
   };
 
-  const handleFormSuccess = async () => {
-    // Wait for refetch to complete before exiting edit mode
-    await refetchReport();
+  const handleFormSuccess = () => {
+    // Exit edit mode immediately - the cache has been updated via setQueryData
     setIsEditing(false);
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = new Date(e.target.value);
+    // Use timezone-safe parsing to avoid UTC-based day shifts
+    const newDate = parseDateInputSafe(e.target.value);
     setSelectedDate(newDate);
     setIsEditing(false); // Exit edit mode when changing dates
-  };
-
-  const formatDateForInput = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   };
 
   const formatDateDisplay = (date: Date): string => {
@@ -183,11 +176,7 @@ export default function KepsekDashboardPage() {
               <div className="flex-1 w-full">
                 <Label htmlFor="report-date" className="flex items-center gap-2">
                   {dashboardId.kepsek.dateSelector.selectDate}
-                  {!selectedDate && (
-                    <span className="text-xs text-red-600 font-semibold">
-                      ({dashboardId.common.required})
-                    </span>
-                  )}
+                  {!selectedDate && <span className="text-red-500">*</span>}
                 </Label>
                 <Input
                   id="report-date"
@@ -195,85 +184,78 @@ export default function KepsekDashboardPage() {
                   value={selectedDate ? formatDateForInput(selectedDate) : ''}
                   onChange={handleDateChange}
                   className="mt-1.5"
-                  placeholder="Pilih tanggal"
                 />
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setSelectedDate(new Date())}
-                className="w-full sm:w-auto"
-              >
-                {dashboardId.kepsek.dateSelector.today}
-              </Button>
             </div>
+            
             {selectedDate && (
-              <p className="text-sm text-muted-foreground">
-                {dashboardId.kepsek.dateSelector.viewing} <span className="font-medium">{formatDateDisplay(selectedDate)}</span>
-              </p>
-            )}
-            {!selectedDate && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="ml-2">
-                  {dashboardId.kepsek.dateSelector.pleaseSelectDate}
-                </AlertDescription>
-              </Alert>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
+                <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                <span>
+                  {dashboardId.kepsek.dateSelector.selectedDateLabel}: <strong className="text-foreground">{formatDateDisplay(selectedDate)}</strong>
+                </span>
+              </div>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Only show report section if date is selected */}
+      {/* Daily Report Section - Only show if date is selected */}
       {selectedDate && (
-        <>
-          {/* Report Error */}
-          {reportError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="ml-2">
-                {dashboardId.kepsek.error.loadingReport}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Selected Date's Report Status */}
-          {reportLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Card key={selectedDayKey.toString()}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>{dashboardId.kepsek.reportTitle}</CardTitle>
+                <CardDescription>
+                  {formatDateDisplay(selectedDate)}
+                </CardDescription>
+              </div>
+              {selectedReport && !isEditing && (
+                <Button onClick={() => setIsEditing(true)} variant="outline">
+                  {dashboardId.kepsek.editReport}
+                </Button>
+              )}
             </div>
-          ) : selectedReport && !isEditing ? (
-            <TodaySubmissionSummary
-              report={selectedReport}
-              selectedDate={selectedDate}
-              onEdit={() => setIsEditing(true)}
-            />
-          ) : (
-            <>
-              {selectedReport && (
-                <Alert>
-                  <CheckCircle2 className="h-4 w-4" />
-                  <AlertDescription className="ml-2">
-                    {dashboardId.kepsek.submission.editingExisting}
-                  </AlertDescription>
-                </Alert>
-              )}
-              {!selectedReport && (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="ml-2">
-                    {dashboardId.kepsek.submission.notSubmittedForDate}
-                  </AlertDescription>
-                </Alert>
-              )}
+          </CardHeader>
+          <CardContent>
+            {reportLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+                  <p className="text-sm text-muted-foreground">{dashboardId.common.loading}</p>
+                </div>
+              </div>
+            ) : isEditing || !selectedReport ? (
               <DailyReportForm
                 existingReport={selectedReport}
                 selectedDate={selectedDate}
                 selectedDayKey={selectedDayKey}
                 onSuccess={handleFormSuccess}
               />
-            </>
-          )}
-        </>
+            ) : (
+              <TodaySubmissionSummary 
+                report={selectedReport} 
+                selectedDate={selectedDate}
+                onEdit={() => setIsEditing(true)}
+              />
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Prompt to select date if none selected */}
+      {!selectedDate && (
+        <Card className="border-dashed">
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">
+                {dashboardId.kepsek.dateSelector.promptSelectDate}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

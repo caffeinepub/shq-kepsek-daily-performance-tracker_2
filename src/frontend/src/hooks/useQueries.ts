@@ -192,23 +192,36 @@ export function useSaveDailyReport() {
     mutationFn: async ({ report, dateKey }: { report: DailyReport; dateKey: bigint }) => {
       if (!actor) throw new Error('Actor not available');
       await actor.saveDailyReport(report);
-      return dateKey; // Return dateKey for use in onSuccess
+      return { report, dateKey }; // Return both report and dateKey for use in onSuccess
     },
-    onSuccess: (dateKey) => {
+    onSuccess: ({ report, dateKey }) => {
       const principalId = identity?.getPrincipal().toString();
       
-      // Invalidate the specific date's report query for this principal
-      queryClient.invalidateQueries({ queryKey: ['dailyReport', principalId, dateKey.toString()] });
+      // CRITICAL FIX: Immediately update the cache with the saved report
+      // This ensures the UI shows the updated data right away without waiting for refetch
+      queryClient.setQueryData<DailyReport | null>(
+        ['dailyReport', principalId, dateKey.toString()],
+        report
+      );
+      
+      // Invalidate and refetch the per-day report query to ensure backend-confirmed data
+      queryClient.invalidateQueries({ 
+        queryKey: ['dailyReport', principalId, dateKey.toString()],
+        refetchType: 'active'
+      });
       
       // Invalidate all reports for this Kepsek
       queryClient.invalidateQueries({ queryKey: ['allReportsForKepsek', principalId] });
       
-      // Invalidate admin queries for this specific date
-      queryClient.invalidateQueries({ queryKey: ['reportsForDate', dateKey.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['dailyMonitoringRows', dateKey.toString()] });
-      
-      // Refetch the specific date's report immediately to get updated data
-      queryClient.refetchQueries({ queryKey: ['dailyReport', principalId, dateKey.toString()] });
+      // Invalidate admin queries for this specific date to ensure admin sees updated data
+      queryClient.invalidateQueries({ 
+        queryKey: ['reportsForDate', dateKey.toString()],
+        refetchType: 'active'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ['dailyMonitoringRows', dateKey.toString()],
+        refetchType: 'active'
+      });
     },
   });
 }

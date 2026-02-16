@@ -1,52 +1,56 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T13:50:00.770Z",
-  "summary": "REQ-5 is clearly implemented via a new CSV download utility and an Admin Dashboard download button next to the date selector. Principal-side date selection appears to be introduced, and principal report refetch-after-save is partially evidenced. However, the diff summary does not provide enough concrete evidence that the daily report save is truly date-scoped in the backend (overwrite-by-day-key) and that admin monitoring updates automatically after a principal save (via query invalidation/refetch), beyond high-level file summaries.",
+  "generatedAt": "2026-02-16T16:00:18.337Z",
+  "summary": "Diff shows substantial frontend work around per-day keys, form state reset, and attendance photo preview syncing, plus some admin date parsing changes. However, key parts of the save/fetch/update behavior and cross-view invalidation required by REQ-1/2/3 are not verifiable from the truncated diffs (notably the backend daily report save/get logic and the useSaveDailyReport invalidation/update logic). There are also UI text changes to Indonesian that appear unrelated to the request and conflict with the “English user-facing text” constraint.",
   "missing_requirements": [
     {
-      "id": "REQ-2",
-      "requirement": "Ensure saving an edited daily report persists immediately to the backend for the currently selected date (date-scoped overwrite for that day), and the principal dashboard shows the updated saved version after the save completes.",
-      "reason": "While KepsekDashboardPage shows a refetch after form success, the diff summary does not include concrete code changes showing the actual save mutation calling the backend with the selected date/day-key and overwriting the correct day-keyed record (nor any backend changes in backend/main.mo). The DailyReportForm changes are only described in a separate file-summary, not shown in the diff excerpt.",
+      "id": "REQ-1",
+      "requirement": "Fix the Kepsek daily report save/update flow so edited values persist and immediately appear updated for the selected date (no stale cache), including attendance times+photo, class control, teacher control, wali santri response, and program/problem solving.",
+      "reason": "The diff shows frontend form/photo state syncing, but does not include enough non-truncated evidence of the actual save/update mutation implementation (e.g., useSaveDailyReport) nor backend save/get functions to confirm persistence, correct overwriting, and immediate post-save UI refresh behavior for all listed fields.",
       "evidence": [
-        "frontend/src/pages/KepsekDashboardPage.tsx",
-        "frontend-file-summaries.txt (mentions frontend/src/components/kepsek/DailyReportForm.tsx but no code shown)"
+        "backend/main.mo (truncated; daily report functions not shown)",
+        "frontend/src/hooks/useQueries.ts (truncated; useSaveDailyReport implementation not shown)",
+        "frontend/src/components/kepsek/DailyReportForm.tsx (truncated; save handler/mutation call not shown)"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Ensure reports are stored/edited strictly per day: load by selected day, overwrite same-day on save, and show an empty form for days with no report; frontend/backend day key must be consistent.",
+      "reason": "Frontend references selectedDayKey and timezone-safe parsing, but the backend per-day keying and the exact save/get logic that overwrites a single record per day are not shown due to truncation, so consistency and overwrite/no-duplicates cannot be confirmed.",
+      "evidence": [
+        "backend/main.mo (truncated; daily report save/get logic not shown)",
+        "frontend/src/components/kepsek/DailyReportForm.tsx (mentions selectedDayKey but truncated before full behavior)",
+        "frontend/src/pages/KepsekDashboardPage.tsx (selectedDayKey computed; rest truncated)"
       ]
     },
     {
       "id": "REQ-3",
-      "requirement": "Make the admin dashboard automatically reflect the latest saved report data after a principal edits/saves a report (for the same selected date), without requiring a manual full-page reload.",
-      "reason": "The diff excerpt does not show the implementation of auto-refresh (e.g., refetchInterval) for daily monitoring queries, nor explicit invalidation of admin monitoring queries when a daily report is saved. The claim about 30-second intervals appears only in the file summary, not in the visible hook code portion.",
+      "requirement": "After Kepsek saves a daily report, invalidate/refetch relevant admin monitoring queries so admin dashboards reflect the update for that date.",
+      "reason": "The diff snippet of useQueries.ts does not include the daily report mutation’s onSuccess invalidation/refetch logic (only school-related mutations are visible in the provided truncation), so admin refresh behavior after saving a report cannot be verified from evidence provided.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated; no refetchInterval/invalidation for report-save shown)",
-        "frontend-file-summaries.txt (claims auto-refresh for admin monitoring queries)"
+        "frontend/src/hooks/useQueries.ts (truncated; daily report mutation/invalidation not shown)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Centralized Indonesian localization additions for admin download states and new Kepsek date selector strings.",
-      "reason": "Localization text additions are not explicitly requested as part of the requirements (though they support the UX).",
+      "description": "Changed AppHeader user-facing text to Indonesian (tagline/logout) instead of English.",
+      "reason": "Not requested by the BuildRequest and conflicts with the constraint requiring English for any user-facing text added/changed as part of this fix.",
       "evidence": [
-        "frontend/src/localization/dashboardId.ts"
-      ]
-    },
-    {
-      "description": "Toast notifications for download success/error/no-data on the admin dashboard.",
-      "reason": "REQ-5 requires a download control and correct downloaded content, but does not require toast notifications; these are additional UX behavior.",
-      "evidence": [
-        "frontend/src/pages/AdminDashboardPage.tsx"
+        "frontend-file-summaries.txt (entry: \"frontend/src/components/AppHeader.tsx\" mentions Indonesian text changes)"
       ]
     }
   ],
   "confidence": 0.62,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/components/kepsek/AttendancePhotoField.tsx",
+    "frontend/src/components/kepsek/DailyReportForm.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/localization/dashboardId.ts",
     "frontend/src/pages/AdminDashboardPage.tsx",
     "frontend/src/pages/KepsekDashboardPage.tsx",
-    "frontend/src/utils/reportDownload.ts",
     "project_state.json"
   ]
 }

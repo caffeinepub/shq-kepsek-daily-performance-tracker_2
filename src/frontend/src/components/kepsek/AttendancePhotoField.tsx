@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Camera, Upload, X } from 'lucide-react';
@@ -12,10 +12,20 @@ interface AttendancePhotoFieldProps {
 }
 
 export default function AttendancePhotoField({ value, onChange }: AttendancePhotoFieldProps) {
-  const [preview, setPreview] = useState<string | null>(value?.getDirectURL() || null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync preview with value prop changes (e.g., when loading existing report)
+  useEffect(() => {
+    if (value) {
+      const url = value.getDirectURL();
+      setPreview(url);
+    } else {
+      setPreview(null);
+    }
+  }, [value]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -23,13 +33,13 @@ export default function AttendancePhotoField({ value, onChange }: AttendancePhot
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('File harus berupa gambar');
+      toast.error('File must be an image');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Ukuran file maksimal 5MB');
+      toast.error('Maximum file size is 5MB');
       return;
     }
 
@@ -51,9 +61,9 @@ export default function AttendancePhotoField({ value, onChange }: AttendancePhot
       setPreview(previewUrl);
 
       onChange(blob);
-      toast.success('Foto berhasil dipilih');
+      toast.success('Photo selected successfully');
     } catch (error: any) {
-      toast.error('Gagal memproses foto');
+      toast.error('Failed to process photo');
       console.error(error);
     } finally {
       setIsUploading(false);
@@ -62,7 +72,8 @@ export default function AttendancePhotoField({ value, onChange }: AttendancePhot
   };
 
   const handleRemove = () => {
-    if (preview) {
+    // Clean up preview URL if it's a blob URL
+    if (preview && preview.startsWith('blob:')) {
       URL.revokeObjectURL(preview);
     }
     setPreview(null);
@@ -74,7 +85,7 @@ export default function AttendancePhotoField({ value, onChange }: AttendancePhot
 
   return (
     <div className="space-y-3">
-      <Label>Foto Kehadiran *</Label>
+      <Label>Attendance Photo *</Label>
       
       {preview ? (
         <div className="relative">
@@ -97,7 +108,7 @@ export default function AttendancePhotoField({ value, onChange }: AttendancePhot
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
           <Camera className="h-12 w-12 mx-auto text-gray-400 mb-3" />
           <p className="text-sm text-muted-foreground mb-3">
-            Upload foto kehadiran Anda hari ini
+            Upload your attendance photo for today
           </p>
           <input
             ref={fileInputRef}
@@ -114,7 +125,7 @@ export default function AttendancePhotoField({ value, onChange }: AttendancePhot
             disabled={isUploading}
           >
             <Upload className="h-4 w-4 mr-2" />
-            Pilih Foto
+            Select Photo
           </Button>
         </div>
       )}
