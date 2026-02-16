@@ -19,6 +19,7 @@ export const dashboardId = {
     noPhoto: 'Tidak ada foto',
     required: 'Wajib diisi',
     optional: 'Opsional',
+    points: 'poin',
   },
 
   // Header
@@ -40,6 +41,14 @@ export const dashboardId = {
     subtitle: 'Monitoring performa harian kepala sekolah',
     manageKepsek: 'Kelola Kepsek',
     selectDate: 'Pilih tanggal',
+    
+    // Download Feature
+    download: {
+      button: 'Download Laporan',
+      success: 'Laporan berhasil diunduh!',
+      error: 'Gagal mengunduh laporan',
+      noData: 'Tidak ada data untuk diunduh',
+    },
     
     // Monitoring Table
     monitoring: {
@@ -65,6 +74,7 @@ export const dashboardId = {
       arrivalTime: 'Jam Datang',
       departureTime: 'Jam Pulang',
       scoreBreakdown: 'Rincian Skor:',
+      notesSection: 'Catatan',
       categories: {
         attendance: 'Kehadiran + Foto',
         classControl: 'Kontrol Kelas',
@@ -115,12 +125,23 @@ export const dashboardId = {
     region: 'Wilayah',
     principalName: 'Kepala Sekolah',
 
+    // Date Selector
+    dateSelector: {
+      title: 'Pilih Tanggal Laporan',
+      description: 'Pilih tanggal untuk melihat atau mengubah laporan harian',
+      requiredDescription: 'Silakan pilih tanggal terlebih dahulu sebelum mengisi laporan',
+      selectDate: 'Pilih Tanggal',
+      today: 'Hari Ini',
+      viewing: 'Menampilkan laporan untuk:',
+      pleaseSelectDate: 'Silakan pilih tanggal terlebih dahulu untuk melihat atau mengisi laporan',
+    },
+
     // Error States
     error: {
       loadingProfile: 'Error Memuat Profil Sekolah',
       loadingDescription: 'Terjadi masalah saat memuat informasi sekolah Anda',
       retryLoading: 'Coba Muat Ulang',
-      loadingReport: 'Error memuat laporan hari ini. Silakan coba lagi.',
+      loadingReport: 'Error memuat laporan. Silakan coba lagi.',
     },
 
     // Missing School State
@@ -136,8 +157,25 @@ export const dashboardId = {
 
     // Submission Status
     submission: {
-      submitted: 'Anda sudah mengisi laporan hari ini. Terima kasih!',
+      submitted: 'Anda sudah mengisi laporan untuk tanggal ini. Terima kasih!',
       notSubmitted: 'Anda belum mengisi laporan hari ini. Silakan isi form di bawah.',
+      notSubmittedForDate: 'Belum ada laporan untuk tanggal ini. Silakan isi form di bawah.',
+      editingExisting: 'Anda sedang mengedit laporan yang sudah ada.',
+    },
+
+    // Summary View
+    summary: {
+      title: 'Laporan Sudah Terkirim',
+      editReport: 'Edit Laporan',
+      attendancePhoto: 'Foto Kehadiran',
+      scoreBreakdown: 'Rincian Skor',
+      categories: {
+        attendance: 'Kehadiran + Foto',
+        classControl: 'Kontrol Kelas',
+        teacherControl: 'Kontrol Guru',
+        parentResponse: 'Respon Wali Santri',
+        programSolving: 'Program & Problem Solving',
+      },
     },
 
     // Daily Report Form
@@ -151,6 +189,8 @@ export const dashboardId = {
         description: 'Upload foto kehadiran dan catat jam datang & pulang',
         arrivalTime: 'Jam Datang',
         departureTime: 'Jam Pulang',
+        notes: 'Catatan (opsional)',
+        placeholder: 'Tulis catatan tentang kehadiran...',
       },
 
       // Section 2: Class Control
@@ -199,22 +239,6 @@ export const dashboardId = {
       submitUpdate: 'Update Laporan',
       successSave: 'Laporan harian berhasil disimpan!',
       errorSave: 'Gagal menyimpan laporan',
-    },
-
-    // Today's Submission Summary
-    summary: {
-      title: 'Laporan Hari Ini',
-      description: 'Anda sudah mengisi laporan untuk hari ini',
-      attendancePhoto: 'Foto Kehadiran:',
-      scoreBreakdown: 'Rincian Skor:',
-      editReport: 'Edit Laporan',
-      categories: {
-        attendance: 'Kehadiran',
-        classControl: 'Kontrol Kelas',
-        teacherControl: 'Kontrol Guru',
-        parentResponse: 'Respon Wali Santri',
-        programSolving: 'Program & Problem Solving',
-      },
     },
   },
 };

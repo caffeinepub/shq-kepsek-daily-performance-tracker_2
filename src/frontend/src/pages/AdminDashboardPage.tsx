@@ -7,8 +7,11 @@ import ActiveSchoolsSection from '../components/admin/ActiveSchoolsSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Settings } from 'lucide-react';
+import { Settings, Download } from 'lucide-react';
 import { dashboardId } from '../localization/dashboardId';
+import { useGetDailyMonitoringRows } from '../hooks/useQueries';
+import { downloadReportsAsCSV } from '../utils/reportDownload';
+import { toast } from 'sonner';
 
 interface AdminDashboardPageProps {
   onNavigateToManagement: () => void;
@@ -16,6 +19,7 @@ interface AdminDashboardPageProps {
 
 export default function AdminDashboardPage({ onNavigateToManagement }: AdminDashboardPageProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { data: monitoringRows, isLoading: downloadLoading } = useGetDailyMonitoringRows(selectedDate);
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = new Date(e.target.value);
@@ -29,6 +33,21 @@ export default function AdminDashboardPage({ onNavigateToManagement }: AdminDash
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  };
+
+  const handleDownloadReport = () => {
+    if (!monitoringRows || monitoringRows.length === 0) {
+      toast.error(dashboardId.admin.download.noData);
+      return;
+    }
+
+    try {
+      downloadReportsAsCSV(monitoringRows, selectedDate);
+      toast.success(dashboardId.admin.download.success);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error(dashboardId.admin.download.error);
+    }
   };
 
   return (
@@ -50,18 +69,28 @@ export default function AdminDashboardPage({ onNavigateToManagement }: AdminDash
           </p>
         </div>
 
-        {/* Date Selector */}
-        <div className="mb-6">
-          <Label htmlFor="date-select" className="text-sm font-medium mb-2 block">
-            {dashboardId.admin.selectDate}
-          </Label>
-          <Input
-            id="date-select"
-            type="date"
-            value={formatDateForInput(selectedDate)}
-            onChange={handleDateChange}
-            className="max-w-xs"
-          />
+        {/* Date Selector with Download Button */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+          <div className="flex-1 w-full sm:max-w-xs">
+            <Label htmlFor="date-select" className="text-sm font-medium mb-2 block">
+              {dashboardId.admin.selectDate}
+            </Label>
+            <Input
+              id="date-select"
+              type="date"
+              value={formatDateForInput(selectedDate)}
+              onChange={handleDateChange}
+            />
+          </div>
+          <Button
+            onClick={handleDownloadReport}
+            disabled={downloadLoading || !monitoringRows || monitoringRows.length === 0}
+            variant="default"
+            className="w-full sm:w-auto"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {dashboardId.admin.download.button}
+          </Button>
         </div>
 
         {/* Summary Cards */}

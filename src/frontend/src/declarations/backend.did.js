@@ -37,14 +37,19 @@ export const SchoolSummary = IDL.Record({
 export const Time = IDL.Int;
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const DailyReport = IDL.Record({
+  'catatanPresensi' : IDL.Text,
+  'catatanWaliSantri' : IDL.Text,
   'programProblemSolvingScore' : IDL.Nat,
   'waliSantriResponseScore' : IDL.Nat,
   'departureTime' : Time,
   'date' : Time,
   'totalScore' : IDL.Nat,
+  'catatanMonitoringGuru' : IDL.Text,
   'teacherControlScore' : IDL.Nat,
+  'catatanPermasalahanProgram' : IDL.Text,
   'attendanceScore' : IDL.Nat,
   'classControlScore' : IDL.Nat,
+  'catatanAmatanKelas' : IDL.Text,
   'attendancePhoto' : IDL.Opt(ExternalBlob),
 });
 export const UserProfile = IDL.Record({
@@ -159,14 +164,19 @@ export const idlFactory = ({ IDL }) => {
   const Time = IDL.Int;
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const DailyReport = IDL.Record({
+    'catatanPresensi' : IDL.Text,
+    'catatanWaliSantri' : IDL.Text,
     'programProblemSolvingScore' : IDL.Nat,
     'waliSantriResponseScore' : IDL.Nat,
     'departureTime' : Time,
     'date' : Time,
     'totalScore' : IDL.Nat,
+    'catatanMonitoringGuru' : IDL.Text,
     'teacherControlScore' : IDL.Nat,
+    'catatanPermasalahanProgram' : IDL.Text,
     'attendanceScore' : IDL.Nat,
     'classControlScore' : IDL.Nat,
+    'catatanAmatanKelas' : IDL.Text,
     'attendancePhoto' : IDL.Opt(ExternalBlob),
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });

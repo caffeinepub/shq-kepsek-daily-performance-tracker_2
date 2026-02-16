@@ -2,12 +2,31 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-improve-the-guest-no-role-experience-so-it-is-not-cumbersome-on-the-access-denied-screen-show-the-logged-in-user-s-principal-id-with-a-one-click-copy-action-provide-clear-next-step-instructions-and-add-a-retry-action-that-refetches-the-caller-role-without-requiring-the-user-to-sign-out",
-      "featureTitle": "Improve the guest/no-role experience so it is not cumbersome: on the Access Denied screen, show the logged-in user’s Principal ID with a one-click “Copy” action, provide clear next-step instructions, and add a “Retry” action that refetches the caller role without requiring the user to sign out.",
+      "featureId": "feature-remove-any-today-only-restriction-so-principals-kepala-sekolah-can-view-and-edit-daily-reports-for-any-selected-date-including-past-dates-with-no-date-based-edit-lockouts",
+      "featureTitle": "Remove any “today-only” restriction so principals (kepala sekolah) can view and edit daily reports for any selected date, including past dates, with no date-based edit lockouts.",
       "files": [
-        "frontend/src/App.tsx",
+        "frontend/src/pages/KepsekDashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-saving-an-edited-daily-report-persists-immediately-to-the-backend-for-the-currently-selected-date-date-scoped-overwrite-for-that-day-and-the-principal-dashboard-shows-the-updated-saved-version-after-the-save-completes",
+      "featureTitle": "Ensure saving an edited daily report persists immediately to the backend for the currently selected date (date-scoped overwrite for that day), and the principal dashboard shows the updated saved version after the save completes.",
+      "files": [
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/AccessDeniedPage.tsx"
+        "frontend/src/pages/KepsekDashboardPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -24,11 +43,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-remove-the-extra-manual-step-implied-in-the-admin-ui-update-the-admin-manage-school-principals-page-and-the-kepsek-registration-form-so-the-instructions-and-labels-are-in-english-and-reflect-that-saving-a-school-profile-will-also-assign-the-kepsek-user-role-automatically",
-      "featureTitle": "Remove the extra manual step implied in the admin UI: update the Admin “Manage School Principals” page and the Kepsek registration form so the instructions and labels are in English and reflect that saving a school profile will also assign the Kepsek/user role automatically.",
+      "featureId": "feature-make-the-admin-dashboard-automatically-reflect-the-latest-saved-report-data-after-a-principal-edits-saves-a-report-for-the-same-selected-date-without-requiring-a-manual-full-page-reload",
+      "featureTitle": "Make the admin dashboard automatically reflect the latest saved report data after a principal edits/saves a report (for the same selected date), without requiring a manual full-page reload.",
       "files": [
-        "frontend/src/components/admin/KepsekProfileForm.tsx",
-        "frontend/src/pages/AdminKepsekManagementPage.tsx"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -41,6 +59,49 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-required-date-selection-step-before-taking-attendance-absen-in-the-principal-flow-so-the-user-explicitly-chooses-a-report-date-before-completing-attendance-related-inputs",
+      "featureTitle": "Add a required date selection step before taking attendance (absen) in the principal flow, so the user explicitly chooses a report date before completing attendance-related inputs.",
+      "files": [
+        "frontend/src/localization/dashboardId.ts",
+        "frontend/src/pages/KepsekDashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-report-download-feature-on-the-admin-dashboard-to-download-reports-for-the-currently-selected-date",
+      "featureTitle": "Add a report download feature on the admin dashboard to download reports for the currently selected date.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "frontend/src/utils/reportDownload.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
       ],
       "confidence": "high"
     }

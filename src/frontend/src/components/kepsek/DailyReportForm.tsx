@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,11 +11,12 @@ import type { DailyReport } from '../../backend';
 import AttendancePhotoField from './AttendancePhotoField';
 import { ExternalBlob } from '../../backend';
 import { Clock, ClipboardCheck, Users, MessageSquare, Target } from 'lucide-react';
-import { getTodayKey } from '../../utils/dayKey';
 import { dashboardId } from '../../localization/dashboardId';
 
 interface DailyReportFormProps {
   existingReport?: DailyReport | null;
+  selectedDate: Date;
+  selectedDayKey: bigint;
   onSuccess?: () => void;
 }
 
@@ -28,47 +29,72 @@ function timeToNanoseconds(timeString: string, baseDate: bigint): bigint {
 
 function nanosecondsToTime(nanos: bigint): string {
   if (nanos === BigInt(0)) return '';
-  const totalMs = Number(nanos / BigInt(1_000_000));
-  const date = new Date(totalMs);
+  const milliseconds = Number(nanos / BigInt(1_000_000));
+  const date = new Date(milliseconds);
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   return `${hours}:${minutes}`;
 }
 
-export default function DailyReportForm({ existingReport, onSuccess }: DailyReportFormProps) {
-  const [attendancePhoto, setAttendancePhoto] = useState<ExternalBlob | null>(
-    existingReport?.attendancePhoto || null
-  );
-  const [arrivalTime, setArrivalTime] = useState(
-    existingReport?.date ? nanosecondsToTime(existingReport.date) : '07:00'
-  );
-  const [departureTime, setDepartureTime] = useState(
-    existingReport?.departureTime ? nanosecondsToTime(existingReport.departureTime) : '16:00'
-  );
-  
-  const [classControlDone, setClassControlDone] = useState(!!existingReport?.classControlScore);
-  const [classControlNotes, setClassControlNotes] = useState('');
-  
-  const [teacherControlDone, setTeacherControlDone] = useState(!!existingReport?.teacherControlScore);
-  const [teacherControlNotes, setTeacherControlNotes] = useState('');
-  
-  const [waliSantriResponseDone, setWaliSantriResponseDone] = useState(!!existingReport?.waliSantriResponseScore);
-  const [waliSantriResponseNotes, setWaliSantriResponseNotes] = useState('');
-  
-  const [programProblemSolvingDone, setProgramProblemSolvingDone] = useState(!!existingReport?.programProblemSolvingScore);
-  const [programProblemSolvingNotes, setProgramProblemSolvingNotes] = useState('');
+export default function DailyReportForm({ existingReport, selectedDate, selectedDayKey, onSuccess }: DailyReportFormProps) {
+  const [attendancePhoto, setAttendancePhoto] = useState<ExternalBlob | null>(null);
+  const [arrivalTime, setArrivalTime] = useState('');
+  const [departureTime, setDepartureTime] = useState('');
+  const [catatanPresensi, setCatatanPresensi] = useState('');
+  const [classControlChecked, setClassControlChecked] = useState(false);
+  const [catatanAmatanKelas, setCatatanAmatanKelas] = useState('');
+  const [teacherControlChecked, setTeacherControlChecked] = useState(false);
+  const [catatanMonitoringGuru, setCatatanMonitoringGuru] = useState('');
+  const [waliSantriChecked, setWaliSantriChecked] = useState(false);
+  const [catatanWaliSantri, setCatatanWaliSantri] = useState('');
+  const [programSolvingChecked, setProgramSolvingChecked] = useState(false);
+  const [catatanPermasalahanProgram, setCatatanPermasalahanProgram] = useState('');
 
   const saveMutation = useSaveDailyReport();
 
+  // Sync form state with existingReport when it changes
+  useEffect(() => {
+    if (existingReport) {
+      setAttendancePhoto(existingReport.attendancePhoto || null);
+      setArrivalTime(nanosecondsToTime(existingReport.date));
+      setDepartureTime(nanosecondsToTime(existingReport.departureTime));
+      setCatatanPresensi(existingReport.catatanPresensi || '');
+      setClassControlChecked(Number(existingReport.classControlScore) > 0);
+      setCatatanAmatanKelas(existingReport.catatanAmatanKelas || '');
+      setTeacherControlChecked(Number(existingReport.teacherControlScore) > 0);
+      setCatatanMonitoringGuru(existingReport.catatanMonitoringGuru || '');
+      setWaliSantriChecked(Number(existingReport.waliSantriResponseScore) > 0);
+      setCatatanWaliSantri(existingReport.catatanWaliSantri || '');
+      setProgramSolvingChecked(Number(existingReport.programProblemSolvingScore) > 0);
+      setCatatanPermasalahanProgram(existingReport.catatanPermasalahanProgram || '');
+    } else {
+      // Reset form for new report
+      setAttendancePhoto(null);
+      setArrivalTime('');
+      setDepartureTime('');
+      setCatatanPresensi('');
+      setClassControlChecked(false);
+      setCatatanAmatanKelas('');
+      setTeacherControlChecked(false);
+      setCatatanMonitoringGuru('');
+      setWaliSantriChecked(false);
+      setCatatanWaliSantri('');
+      setProgramSolvingChecked(false);
+      setCatatanPermasalahanProgram('');
+    }
+  }, [existingReport]);
+
   const calculateScore = () => {
-    let total = 0;
-    if (attendancePhoto && arrivalTime) total += 20;
-    if (classControlDone) total += 20;
-    if (teacherControlDone) total += 20;
-    if (waliSantriResponseDone) total += 20;
-    if (programProblemSolvingDone) total += 20;
-    return total;
+    let score = 0;
+    if (attendancePhoto && arrivalTime && departureTime) score += 20;
+    if (classControlChecked) score += 20;
+    if (teacherControlChecked) score += 20;
+    if (waliSantriChecked) score += 20;
+    if (programSolvingChecked) score += 20;
+    return score;
   };
+
+  const currentScore = calculateScore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,49 +114,51 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
       return;
     }
 
-    const todayKey = getTodayKey();
-    const arrivalNanos = timeToNanoseconds(arrivalTime, todayKey);
-    const departureNanos = timeToNanoseconds(departureTime, todayKey);
-
     const report: DailyReport = {
-      date: arrivalNanos,
-      departureTime: departureNanos,
-      attendanceScore: BigInt(attendancePhoto && arrivalTime ? 20 : 0),
-      classControlScore: BigInt(classControlDone ? 20 : 0),
-      teacherControlScore: BigInt(teacherControlDone ? 20 : 0),
-      waliSantriResponseScore: BigInt(waliSantriResponseDone ? 20 : 0),
-      programProblemSolvingScore: BigInt(programProblemSolvingDone ? 20 : 0),
-      totalScore: BigInt(calculateScore()),
-      attendancePhoto,
+      date: timeToNanoseconds(arrivalTime, selectedDayKey),
+      attendanceScore: BigInt(attendancePhoto && arrivalTime && departureTime ? 20 : 0),
+      departureTime: timeToNanoseconds(departureTime, selectedDayKey),
+      catatanPresensi: catatanPresensi,
+      classControlScore: BigInt(classControlChecked ? 20 : 0),
+      catatanAmatanKelas: catatanAmatanKelas,
+      teacherControlScore: BigInt(teacherControlChecked ? 20 : 0),
+      catatanMonitoringGuru: catatanMonitoringGuru,
+      waliSantriResponseScore: BigInt(waliSantriChecked ? 20 : 0),
+      catatanWaliSantri: catatanWaliSantri,
+      programProblemSolvingScore: BigInt(programSolvingChecked ? 20 : 0),
+      catatanPermasalahanProgram: catatanPermasalahanProgram,
+      totalScore: BigInt(currentScore),
+      attendancePhoto: attendancePhoto,
     };
 
     try {
-      await saveMutation.mutateAsync(report);
+      await saveMutation.mutateAsync({ report, dateKey: selectedDayKey });
       toast.success(dashboardId.kepsek.form.successSave);
-      if (onSuccess) onSuccess();
+      if (onSuccess) {
+        await onSuccess();
+      }
     } catch (error: any) {
-      toast.error(error.message || dashboardId.kepsek.form.errorSave);
+      console.error('Error saving report:', error);
+      toast.error(dashboardId.kepsek.form.errorSave);
     }
   };
-
-  const currentScore = calculateScore();
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Score Display */}
-      <Card className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950 dark:to-green-950 border-2">
+      <Card className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/20 dark:to-green-950/20 border-2">
         <CardContent className="pt-6">
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">{dashboardId.kepsek.form.currentScore}</p>
             <p className="text-5xl font-bold text-blue-600 dark:text-blue-400">
               {currentScore}
+              <span className="text-2xl text-muted-foreground ml-2">{dashboardId.kepsek.form.outOf}</span>
             </p>
-            <p className="text-sm text-muted-foreground mt-1">{dashboardId.kepsek.form.outOf}</p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Section 1: Attendance */}
+      {/* Section 1: Attendance & Photo */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -144,6 +172,7 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
             value={attendancePhoto}
             onChange={setAttendancePhoto}
           />
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="arrival-time">{dashboardId.kepsek.form.attendance.arrivalTime}</Label>
@@ -152,7 +181,7 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
                 type="time"
                 value={arrivalTime}
                 onChange={(e) => setArrivalTime(e.target.value)}
-                required
+                className="mt-1.5"
               />
             </div>
             <div>
@@ -162,9 +191,21 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
                 type="time"
                 value={departureTime}
                 onChange={(e) => setDepartureTime(e.target.value)}
-                required
+                className="mt-1.5"
               />
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="catatan-presensi">{dashboardId.kepsek.form.attendance.notes}</Label>
+            <Textarea
+              id="catatan-presensi"
+              value={catatanPresensi}
+              onChange={(e) => setCatatanPresensi(e.target.value)}
+              placeholder={dashboardId.kepsek.form.attendance.placeholder}
+              className="mt-1.5"
+              rows={3}
+            />
           </div>
         </CardContent>
       </Card>
@@ -182,25 +223,25 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
           <div className="flex items-center space-x-2">
             <Checkbox
               id="class-control"
-              checked={classControlDone}
-              onCheckedChange={(checked) => setClassControlDone(checked as boolean)}
+              checked={classControlChecked}
+              onCheckedChange={(checked) => setClassControlChecked(checked as boolean)}
             />
             <Label htmlFor="class-control" className="cursor-pointer">
               {dashboardId.kepsek.form.classControl.checkbox}
             </Label>
           </div>
-          {classControlDone && (
-            <div>
-              <Label htmlFor="class-control-notes">{dashboardId.kepsek.form.classControl.notes}</Label>
-              <Textarea
-                id="class-control-notes"
-                value={classControlNotes}
-                onChange={(e) => setClassControlNotes(e.target.value)}
-                placeholder={dashboardId.kepsek.form.classControl.placeholder}
-                rows={3}
-              />
-            </div>
-          )}
+
+          <div>
+            <Label htmlFor="catatan-kelas">{dashboardId.kepsek.form.classControl.notes}</Label>
+            <Textarea
+              id="catatan-kelas"
+              value={catatanAmatanKelas}
+              onChange={(e) => setCatatanAmatanKelas(e.target.value)}
+              placeholder={dashboardId.kepsek.form.classControl.placeholder}
+              className="mt-1.5"
+              rows={3}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -217,29 +258,29 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
           <div className="flex items-center space-x-2">
             <Checkbox
               id="teacher-control"
-              checked={teacherControlDone}
-              onCheckedChange={(checked) => setTeacherControlDone(checked as boolean)}
+              checked={teacherControlChecked}
+              onCheckedChange={(checked) => setTeacherControlChecked(checked as boolean)}
             />
             <Label htmlFor="teacher-control" className="cursor-pointer">
               {dashboardId.kepsek.form.teacherControl.checkbox}
             </Label>
           </div>
-          {teacherControlDone && (
-            <div>
-              <Label htmlFor="teacher-control-notes">{dashboardId.kepsek.form.teacherControl.notes}</Label>
-              <Textarea
-                id="teacher-control-notes"
-                value={teacherControlNotes}
-                onChange={(e) => setTeacherControlNotes(e.target.value)}
-                placeholder={dashboardId.kepsek.form.teacherControl.placeholder}
-                rows={3}
-              />
-            </div>
-          )}
+
+          <div>
+            <Label htmlFor="catatan-guru">{dashboardId.kepsek.form.teacherControl.notes}</Label>
+            <Textarea
+              id="catatan-guru"
+              value={catatanMonitoringGuru}
+              onChange={(e) => setCatatanMonitoringGuru(e.target.value)}
+              placeholder={dashboardId.kepsek.form.teacherControl.placeholder}
+              className="mt-1.5"
+              rows={3}
+            />
+          </div>
         </CardContent>
       </Card>
 
-      {/* Section 4: Wali Santri Response */}
+      {/* Section 4: Parent Response */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -251,26 +292,26 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="wali-santri-response"
-              checked={waliSantriResponseDone}
-              onCheckedChange={(checked) => setWaliSantriResponseDone(checked as boolean)}
+              id="wali-santri"
+              checked={waliSantriChecked}
+              onCheckedChange={(checked) => setWaliSantriChecked(checked as boolean)}
             />
-            <Label htmlFor="wali-santri-response" className="cursor-pointer">
+            <Label htmlFor="wali-santri" className="cursor-pointer">
               {dashboardId.kepsek.form.parentResponse.checkbox}
             </Label>
           </div>
-          {waliSantriResponseDone && (
-            <div>
-              <Label htmlFor="wali-santri-response-notes">{dashboardId.kepsek.form.parentResponse.notes}</Label>
-              <Textarea
-                id="wali-santri-response-notes"
-                value={waliSantriResponseNotes}
-                onChange={(e) => setWaliSantriResponseNotes(e.target.value)}
-                placeholder={dashboardId.kepsek.form.parentResponse.placeholder}
-                rows={3}
-              />
-            </div>
-          )}
+
+          <div>
+            <Label htmlFor="catatan-wali">{dashboardId.kepsek.form.parentResponse.notes}</Label>
+            <Textarea
+              id="catatan-wali"
+              value={catatanWaliSantri}
+              onChange={(e) => setCatatanWaliSantri(e.target.value)}
+              placeholder={dashboardId.kepsek.form.parentResponse.placeholder}
+              className="mt-1.5"
+              rows={3}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -286,26 +327,26 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="program-problem-solving"
-              checked={programProblemSolvingDone}
-              onCheckedChange={(checked) => setProgramProblemSolvingDone(checked as boolean)}
+              id="program-solving"
+              checked={programSolvingChecked}
+              onCheckedChange={(checked) => setProgramSolvingChecked(checked as boolean)}
             />
-            <Label htmlFor="program-problem-solving" className="cursor-pointer">
+            <Label htmlFor="program-solving" className="cursor-pointer">
               {dashboardId.kepsek.form.programSolving.checkbox}
             </Label>
           </div>
-          {programProblemSolvingDone && (
-            <div>
-              <Label htmlFor="program-problem-solving-notes">{dashboardId.kepsek.form.programSolving.notes}</Label>
-              <Textarea
-                id="program-problem-solving-notes"
-                value={programProblemSolvingNotes}
-                onChange={(e) => setProgramProblemSolvingNotes(e.target.value)}
-                placeholder={dashboardId.kepsek.form.programSolving.placeholder}
-                rows={3}
-              />
-            </div>
-          )}
+
+          <div>
+            <Label htmlFor="catatan-program">{dashboardId.kepsek.form.programSolving.notes}</Label>
+            <Textarea
+              id="catatan-program"
+              value={catatanPermasalahanProgram}
+              onChange={(e) => setCatatanPermasalahanProgram(e.target.value)}
+              placeholder={dashboardId.kepsek.form.programSolving.placeholder}
+              className="mt-1.5"
+              rows={3}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -316,7 +357,11 @@ export default function DailyReportForm({ existingReport, onSuccess }: DailyRepo
         className="w-full"
         disabled={saveMutation.isPending}
       >
-        {saveMutation.isPending ? dashboardId.common.saving : existingReport ? dashboardId.kepsek.form.submitUpdate : dashboardId.kepsek.form.submitNew}
+        {saveMutation.isPending
+          ? dashboardId.common.saving
+          : existingReport
+          ? dashboardId.kepsek.form.submitUpdate
+          : dashboardId.kepsek.form.submitNew}
       </Button>
     </form>
   );

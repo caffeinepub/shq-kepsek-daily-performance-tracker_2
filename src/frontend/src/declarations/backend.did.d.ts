@@ -16,14 +16,19 @@ export interface DailyMonitoringRow {
   'school' : School,
 }
 export interface DailyReport {
+  'catatanPresensi' : string,
+  'catatanWaliSantri' : string,
   'programProblemSolvingScore' : bigint,
   'waliSantriResponseScore' : bigint,
   'departureTime' : Time,
   'date' : Time,
   'totalScore' : bigint,
+  'catatanMonitoringGuru' : string,
   'teacherControlScore' : bigint,
+  'catatanPermasalahanProgram' : string,
   'attendanceScore' : bigint,
   'classControlScore' : bigint,
+  'catatanAmatanKelas' : string,
   'attendancePhoto' : [] | [ExternalBlob],
 }
 export type ExternalBlob = Uint8Array;

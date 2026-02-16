@@ -1,85 +1,112 @@
 {
   "kind": "build_request",
-  "title": "Reduce friction for principals by auto-assigning Kepsek role and improving Access Denied onboarding",
+  "title": "Rebuild: Unrestricted daily report editing by date, date selection before attendance, and admin report download",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the backend so that when an admin registers or updates a school profile for a principal, the target principal is automatically granted the Kepsek/user role (so they no longer see “Access Denied” after logging in).",
-      "target": "backend",
+      "text": "Remove any “today-only” restriction so principals (kepala sekolah) can view and edit daily reports for any selected date, including past dates, with no date-based edit lockouts.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "perbaiki, ini lumayan meribetkan"
+          "Kepala sekolah bisa edit laporan harian tanpa batasan tanggal.",
+          "Tidak ada pembatasan bahwa hanya laporan hari ini yang bisa diubah."
         ]
       },
       "acceptanceCriteria": [
-        "After an admin calls the existing school-registration flow for a principal (the same one used by the UI), that principal’s subsequent call to getCallerUserRole returns the Kepsek/user role (not guest).",
-        "A principal who has been registered by an admin can log in and reach the Kepsek dashboard without being blocked by the AccessDeniedPage role check.",
-        "No new backend canisters/services are introduced; all logic remains in the single main actor."
+        "On the principal dashboard, selecting any calendar date allows opening the daily report for that date (if it exists) and editing it.",
+        "The UI does not display or enforce any rule that only today's report can be edited.",
+        "Edits for a past/future selected date are allowed and the Save action is enabled."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Improve the guest/no-role experience so it is not cumbersome: on the Access Denied screen, show the logged-in user’s Principal ID with a one-click “Copy” action, provide clear next-step instructions, and add a “Retry” action that refetches the caller role without requiring the user to sign out.",
-      "target": "frontend",
+      "text": "Ensure saving an edited daily report persists immediately to the backend for the currently selected date (date-scoped overwrite for that day), and the principal dashboard shows the updated saved version after the save completes.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "perbaiki, ini lumayan meribetkan"
+          "Data hasil edit langsung tersimpan ke backend."
         ]
       },
       "acceptanceCriteria": [
-        "When a logged-in user has role=guest or no role, the Access Denied view displays their Principal ID in a read-only field and includes a Copy button that confirms success via toast.",
-        "The Access Denied view includes a Retry button that triggers a role refetch and, if the role becomes valid, routes the user into the correct dashboard without logout.",
-        "All user-facing text added/changed in this flow is in English."
+        "Submitting the daily report form calls the backend save operation and overwrites the report for the selected date (same day-key).",
+        "After a successful save, the principal dashboard reloads/refetches the selected date’s report and displays the latest saved values (including photo if present).",
+        "Refreshing the page after saving still shows the updated report for that selected date."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Remove the extra manual step implied in the admin UI: update the Admin “Manage School Principals” page and the Kepsek registration form so the instructions and labels are in English and reflect that saving a school profile will also assign the Kepsek/user role automatically.",
+      "text": "Make the admin dashboard automatically reflect the latest saved report data after a principal edits/saves a report (for the same selected date), without requiring a manual full-page reload.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "perbaiki, ini lumayan meribetkan"
+          "Dashboard admin otomatis menampilkan versi terbaru."
         ]
       },
       "acceptanceCriteria": [
-        "AdminKepsekManagementPage no longer instructs admins to separately “assign the user role via backend”; it states that registering the school profile will assign access automatically.",
-        "KepsekProfileForm field labels and helper text are in English (e.g., “Principal ID”, not mixed-language labels).",
-        "Successful registration messaging remains clear and in English."
+        "Admin dashboard monitoring data for a selected date updates to the latest backend state after a report is saved for that date (e.g., via React Query invalidation and/or periodic refetch).",
+        "If an admin is viewing the same date that was edited, the new values appear in the monitoring table/detail view shortly after the save (without a hard refresh)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a required date selection step before taking attendance (absen) in the principal flow, so the user explicitly chooses a report date before completing attendance-related inputs.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "tampilkan untuk memilih tanggal sebelum absen"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The principal UI clearly prompts for a date selection before attendance inputs are enabled/usable.",
+        "Attendance-related UI (e.g., attendance photo/time fields) is disabled or hidden until a valid date is selected.",
+        "Once a date is selected, attendance can be completed for that selected date and saved to the backend under that date."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add a report download feature on the admin dashboard to download reports for the currently selected date.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "didashboard admin tambahkan fitur download laporan"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin dashboard includes a clearly visible download control near the date selector (or in the dashboard header area).",
+        "Clicking download generates and downloads a file containing the reports for the currently selected date (at minimum: principal/school identifiers and daily report fields, including scores and notes; photo should be represented by presence/URL/identifier if binary is not embedded).",
+        "The downloaded content matches what the admin dashboard shows for that selected date (same dataset source as monitoring rows/reports-for-date)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister; do not introduce additional backend services.",
-    "Do not modify files under frontend/src/components/ui or other paths listed as immutable in SYSTEM_CONTEXT.",
-    "Use English for any user-facing text in these changes."
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
+    "Only add backend state migration (backend/migration.mo) if a persistent state schema change is required; otherwise do not create/modify migration.",
+    "Do not edit files under frontend immutablePaths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui). Compose existing UI components instead."
   ],
   "nonGoals": [
-    "Implementing third-party authentication beyond Internet Identity.",
-    "Adding real-time features (WebSockets/chat/notifications).",
-    "Redesigning unrelated dashboard features (analytics, monitoring table behavior) beyond the role/onboarding friction shown."
+    "Do not add third-party authentication providers; continue using Internet Identity only.",
+    "Do not add external databases or non-IC storage systems.",
+    "Do not implement real-time features using WebSockets/push notifications; rely on React Query refetch/invalidation/polling patterns instead.",
+    "Do not redesign unrelated admin analytics or school management features beyond what is needed for date selection, refresh behavior, and report download."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

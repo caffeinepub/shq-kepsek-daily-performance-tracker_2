@@ -25,7 +25,8 @@ interface MonitoringTableProps {
 
 export default function MonitoringTable({ selectedDate }: MonitoringTableProps) {
   const { data: monitoringRows, isLoading } = useGetDailyMonitoringRows(selectedDate);
-  const [selectedRow, setSelectedRow] = useState<DailyMonitoringRow | null>(null);
+  // Store only the principal ID instead of the entire row object
+  const [selectedPrincipalId, setSelectedPrincipalId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -63,6 +64,11 @@ export default function MonitoringTable({ selectedDate }: MonitoringTableProps) 
     // Both don't have reports: sort by school name
     return a.school.name.localeCompare(b.school.name);
   });
+
+  // Derive the selected row from the latest data
+  const selectedRow = selectedPrincipalId
+    ? sortedRows.find((row) => row.principal.toString() === selectedPrincipalId)
+    : null;
 
   return (
     <>
@@ -138,7 +144,7 @@ export default function MonitoringTable({ selectedDate }: MonitoringTableProps) 
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setSelectedRow(row)}
+                              onClick={() => setSelectedPrincipalId(row.principal.toString())}
                             >
                               <Eye className="h-4 w-4 mr-1" />
                               {dashboardId.admin.monitoring.view}
@@ -157,10 +163,13 @@ export default function MonitoringTable({ selectedDate }: MonitoringTableProps) 
         </CardContent>
       </Card>
 
-      {selectedRow && (
+      {selectedRow && selectedRow.report && (
         <ReportDetailView
-          row={selectedRow}
-          onClose={() => setSelectedRow(null)}
+          report={selectedRow.report}
+          schoolName={selectedRow.school.name}
+          principalName={selectedRow.school.principalName}
+          open={!!selectedPrincipalId}
+          onOpenChange={(open) => !open && setSelectedPrincipalId(null)}
         />
       )}
     </>

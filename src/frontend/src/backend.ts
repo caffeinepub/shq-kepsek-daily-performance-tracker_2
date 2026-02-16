@@ -117,14 +117,19 @@ export interface SchoolSummary {
     school: School;
 }
 export interface DailyReport {
+    catatanPresensi: string;
+    catatanWaliSantri: string;
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
     departureTime: Time;
     date: Time;
     totalScore: bigint;
+    catatanMonitoringGuru: string;
     teacherControlScore: bigint;
+    catatanPermasalahanProgram: string;
     attendanceScore: bigint;
     classControlScore: bigint;
+    catatanAmatanKelas: string;
     attendancePhoto?: ExternalBlob;
 }
 export interface UserProfile {
@@ -528,35 +533,50 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
     return value.length === 0 ? null : value[0];
 }
 async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    catatanPresensi: string;
+    catatanWaliSantri: string;
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
     departureTime: _Time;
     date: _Time;
     totalScore: bigint;
+    catatanMonitoringGuru: string;
     teacherControlScore: bigint;
+    catatanPermasalahanProgram: string;
     attendanceScore: bigint;
     classControlScore: bigint;
+    catatanAmatanKelas: string;
     attendancePhoto: [] | [_ExternalBlob];
 }): Promise<{
+    catatanPresensi: string;
+    catatanWaliSantri: string;
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
     departureTime: Time;
     date: Time;
     totalScore: bigint;
+    catatanMonitoringGuru: string;
     teacherControlScore: bigint;
+    catatanPermasalahanProgram: string;
     attendanceScore: bigint;
     classControlScore: bigint;
+    catatanAmatanKelas: string;
     attendancePhoto?: ExternalBlob;
 }> {
     return {
+        catatanPresensi: value.catatanPresensi,
+        catatanWaliSantri: value.catatanWaliSantri,
         programProblemSolvingScore: value.programProblemSolvingScore,
         waliSantriResponseScore: value.waliSantriResponseScore,
         departureTime: value.departureTime,
         date: value.date,
         totalScore: value.totalScore,
+        catatanMonitoringGuru: value.catatanMonitoringGuru,
         teacherControlScore: value.teacherControlScore,
+        catatanPermasalahanProgram: value.catatanPermasalahanProgram,
         attendanceScore: value.attendanceScore,
         classControlScore: value.classControlScore,
+        catatanAmatanKelas: value.catatanAmatanKelas,
         attendancePhoto: record_opt_to_undefined(await from_candid_opt_n13(_uploadFile, _downloadFile, value.attendancePhoto))
     };
 }
@@ -633,35 +653,50 @@ function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Arra
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
 }
 async function to_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    catatanPresensi: string;
+    catatanWaliSantri: string;
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
     departureTime: Time;
     date: Time;
     totalScore: bigint;
+    catatanMonitoringGuru: string;
     teacherControlScore: bigint;
+    catatanPermasalahanProgram: string;
     attendanceScore: bigint;
     classControlScore: bigint;
+    catatanAmatanKelas: string;
     attendancePhoto?: ExternalBlob;
 }): Promise<{
+    catatanPresensi: string;
+    catatanWaliSantri: string;
     programProblemSolvingScore: bigint;
     waliSantriResponseScore: bigint;
     departureTime: _Time;
     date: _Time;
     totalScore: bigint;
+    catatanMonitoringGuru: string;
     teacherControlScore: bigint;
+    catatanPermasalahanProgram: string;
     attendanceScore: bigint;
     classControlScore: bigint;
+    catatanAmatanKelas: string;
     attendancePhoto: [] | [_ExternalBlob];
 }> {
     return {
+        catatanPresensi: value.catatanPresensi,
+        catatanWaliSantri: value.catatanWaliSantri,
         programProblemSolvingScore: value.programProblemSolvingScore,
         waliSantriResponseScore: value.waliSantriResponseScore,
         departureTime: value.departureTime,
         date: value.date,
         totalScore: value.totalScore,
+        catatanMonitoringGuru: value.catatanMonitoringGuru,
         teacherControlScore: value.teacherControlScore,
+        catatanPermasalahanProgram: value.catatanPermasalahanProgram,
         attendanceScore: value.attendanceScore,
         classControlScore: value.classControlScore,
+        catatanAmatanKelas: value.catatanAmatanKelas,
         attendancePhoto: value.attendancePhoto ? candid_some(await to_candid_ExternalBlob_n28(_uploadFile, _downloadFile, value.attendancePhoto)) : candid_none()
     };
 }

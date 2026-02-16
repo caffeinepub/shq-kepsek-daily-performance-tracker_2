@@ -34,10 +34,15 @@ actor {
     date : Time.Time;
     attendanceScore : Nat;
     departureTime : Time.Time;
+    catatanPresensi : Text;
     classControlScore : Nat;
+    catatanAmatanKelas : Text;
     teacherControlScore : Nat;
+    catatanMonitoringGuru : Text;
     waliSantriResponseScore : Nat;
+    catatanWaliSantri : Text;
     programProblemSolvingScore : Nat;
+    catatanPermasalahanProgram : Text;
     totalScore : Nat;
     attendancePhoto : ?BlobStorage.ExternalBlob;
   };
@@ -92,8 +97,8 @@ actor {
 
   // School Management Functions
   public shared ({ caller }) func saveSchool(school : School) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller) and not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only Kepsek or Admin can save a school");
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only Kepsek can save a school");
     };
     schools.add(caller, school);
   };
@@ -138,8 +143,8 @@ actor {
       case (null) { Map.empty<Time.Time, DailyReport>() };
       case (?reports) { reports };
     };
-    kepsekReports.add(reportDayKey, dailyReport);
-    dailyReports.add(caller, kepsekReports);
+    kepsekReports.add(reportDayKey, dailyReport); // Overwrite existing entry for the same day
+    dailyReports.add(caller, kepsekReports); // Update dailyReports map
   };
 
   public query ({ caller }) func getDailyReport(principal : Principal, date : Time.Time) : async ?DailyReport {

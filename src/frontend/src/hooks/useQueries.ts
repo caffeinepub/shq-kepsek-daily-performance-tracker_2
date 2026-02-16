@@ -128,7 +128,7 @@ export function useUpdateSchoolForPrincipal() {
   });
 }
 
-// Daily Report queries - PRINCIPAL-SCOPED
+// Daily Report queries - PRINCIPAL-SCOPED with DATE
 export function useGetTodayReport() {
   const { actor, isFetching: actorFetching } = useActor();
   const { identity } = useInternetIdentity();
@@ -137,11 +137,30 @@ export function useGetTodayReport() {
   const todayKey = getTodayKey();
 
   return useQuery<DailyReport | null>({
-    queryKey: ['todayReport', principalId, todayKey.toString()],
+    queryKey: ['dailyReport', principalId, todayKey.toString()],
     queryFn: async () => {
       if (!actor || !identity) throw new Error('Actor or identity not available');
       const principal = identity.getPrincipal();
       return actor.getDailyReport(principal, todayKey);
+    },
+    enabled: !!actor && !actorFetching && !!identity,
+    retry: 2,
+  });
+}
+
+export function useGetReportForDate(date: Date) {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  const principalId = identity?.getPrincipal().toString();
+  const dateKey = getStartOfDayNanoseconds(date);
+
+  return useQuery<DailyReport | null>({
+    queryKey: ['dailyReport', principalId, dateKey.toString()],
+    queryFn: async () => {
+      if (!actor || !identity) throw new Error('Actor or identity not available');
+      const principal = identity.getPrincipal();
+      return actor.getDailyReport(principal, dateKey);
     },
     enabled: !!actor && !actorFetching && !!identity,
     retry: 2,
@@ -155,7 +174,7 @@ export function useGetAllReportsForKepsek() {
   const principalId = identity?.getPrincipal().toString();
 
   return useQuery<DailyReport[]>({
-    queryKey: ['allKepsekReports', principalId],
+    queryKey: ['allReportsForKepsek', principalId],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getAllDailyReportsForKepsek();
@@ -170,107 +189,122 @@ export function useSaveDailyReport() {
   const { identity } = useInternetIdentity();
 
   return useMutation({
-    mutationFn: async (report: DailyReport) => {
+    mutationFn: async ({ report, dateKey }: { report: DailyReport; dateKey: bigint }) => {
       if (!actor) throw new Error('Actor not available');
       await actor.saveDailyReport(report);
-      return report;
+      return dateKey; // Return dateKey for use in onSuccess
     },
-    onSuccess: (savedReport) => {
+    onSuccess: (dateKey) => {
       const principalId = identity?.getPrincipal().toString();
-      const todayKey = getTodayKey();
       
-      // Invalidate principal-scoped today report query to trigger refetch
-      queryClient.invalidateQueries({ queryKey: ['todayReport', principalId, todayKey.toString()] });
+      // Invalidate the specific date's report query for this principal
+      queryClient.invalidateQueries({ queryKey: ['dailyReport', principalId, dateKey.toString()] });
       
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ['allKepsekReports', principalId] });
-      queryClient.invalidateQueries({ queryKey: ['activeSchoolsCount'] });
+      // Invalidate all reports for this Kepsek
+      queryClient.invalidateQueries({ queryKey: ['allReportsForKepsek', principalId] });
       
-      // Invalidate admin monitoring queries (both old and new)
-      queryClient.invalidateQueries({ queryKey: ['reportsForDate'] });
-      queryClient.invalidateQueries({ queryKey: ['dailyMonitoringRows'] });
+      // Invalidate admin queries for this specific date
+      queryClient.invalidateQueries({ queryKey: ['reportsForDate', dateKey.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['dailyMonitoringRows', dateKey.toString()] });
+      
+      // Refetch the specific date's report immediately to get updated data
+      queryClient.refetchQueries({ queryKey: ['dailyReport', principalId, dateKey.toString()] });
     },
   });
 }
 
-// Admin queries - PRINCIPAL-SCOPED for cache invalidation on re-login
+// Admin Dashboard queries with auto-refresh
 export function useGetReportsForDate(date: Date) {
   const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  const principalId = identity?.getPrincipal().toString();
   const dateKey = getStartOfDayNanoseconds(date);
 
   return useQuery<RankedDailyReport[]>({
-    queryKey: ['reportsForDate', principalId, dateKey.toString()],
+    queryKey: ['reportsForDate', dateKey.toString()],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getReportsForDate(dateKey);
     },
-    enabled: !!actor && !actorFetching && !!identity,
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
-}
-
-export function useGetDailyMonitoringRows(date: Date) {
-  const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  const principalId = identity?.getPrincipal().toString();
-  const dateKey = getStartOfDayNanoseconds(date);
-
-  return useQuery<DailyMonitoringRow[]>({
-    queryKey: ['dailyMonitoringRows', principalId, dateKey.toString()],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getDailyMonitoringRows(dateKey);
-    },
-    enabled: !!actor && !actorFetching && !!identity,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    enabled: !!actor && !actorFetching,
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: true,
   });
 }
 
 export function useGetActiveSchoolsCount() {
   const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  const principalId = identity?.getPrincipal().toString();
 
   return useQuery<bigint>({
-    queryKey: ['activeSchoolsCount', principalId],
+    queryKey: ['activeSchoolsCount'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getActiveSchoolsCount();
     },
-    enabled: !!actor && !actorFetching && !!identity,
+    enabled: !!actor && !actorFetching,
   });
 }
 
 export function useGetActiveSchoolsList() {
   const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  const principalId = identity?.getPrincipal().toString();
 
   return useQuery<SchoolSummary[]>({
-    queryKey: ['activeSchoolsList', principalId],
+    queryKey: ['activeSchoolsList'],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error('Actor not available');
       return actor.getActiveSchoolsList();
     },
-    enabled: !!actor && !actorFetching && !!identity,
+    enabled: !!actor && !actorFetching,
   });
 }
 
-export function useGetDailyReportForPrincipal(principal: Principal | null, date: bigint) {
+export function useGetDailyMonitoringRows(date: Date) {
+  const { actor, isFetching: actorFetching } = useActor();
+  const dateKey = getStartOfDayNanoseconds(date);
+
+  return useQuery<DailyMonitoringRow[]>({
+    queryKey: ['dailyMonitoringRows', dateKey.toString()],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getDailyMonitoringRows(dateKey);
+    },
+    enabled: !!actor && !actorFetching,
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: true,
+  });
+}
+
+// User Profile queries
+export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
 
-  return useQuery<DailyReport | null>({
-    queryKey: ['dailyReport', principal?.toString(), date.toString()],
+  const query = useQuery({
+    queryKey: ['currentUserProfile'],
     queryFn: async () => {
-      if (!actor || !principal) throw new Error('Actor or principal not available');
-      return actor.getDailyReport(principal, date);
+      if (!actor) throw new Error('Actor not available');
+      return actor.getCallerUserProfile();
     },
-    enabled: !!actor && !actorFetching && !!principal,
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+
+  // Return custom state that properly reflects actor dependency
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
+export function useSaveCallerUserProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (profile: { name: string; email: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.saveCallerUserProfile(profile);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
   });
 }

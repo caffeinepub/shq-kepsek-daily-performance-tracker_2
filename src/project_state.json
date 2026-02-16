@@ -1,26 +1,48 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "School daily report/attendance system: principal can edit daily reports for any date; edits persist to backend and reflect immediately on admin dashboard; date selection required before attendance; admin dashboard supports downloading reports.",
   "architectural_notes": [],
-  "known_issues": [
-    "User requests a fix: current experience is \"lumayan meribetkan\" (somewhat cumbersome); specific issue not yet identified."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-improve-the-guest-no-role-experience-so-it-is-not-cumbersome-on-the-access-denied-screen-show-the-logged-in-user-s-principal-id-with-a-one-click-copy-action-provide-clear-next-step-instructions-and-add-a-retry-action-that-refetches-the-caller-role-without-requiring-the-user-to-sign-out",
-      "title": "Improve the guest/no-role experience so it is not cumbersome: on the Access Denied screen, show the logged-in user’s Principal ID with a one-click “Copy” action, provide clear next-step instructions, and add a “Retry” action that refetches the caller role without requiring the user to sign out.",
+      "id": "feature-remove-any-today-only-restriction-so-principals-kepala-sekolah-can-view-and-edit-daily-reports-for-any-selected-date-including-past-dates-with-no-date-based-edit-lockouts",
+      "title": "Remove any “today-only” restriction so principals (kepala sekolah) can view and edit daily reports for any selected date, including past dates, with no date-based edit lockouts.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-saving-an-edited-daily-report-persists-immediately-to-the-backend-for-the-currently-selected-date-date-scoped-overwrite-for-that-day-and-the-principal-dashboard-shows-the-updated-saved-version-after-the-save-completes",
+      "title": "Ensure saving an edited daily report persists immediately to the backend for the currently selected date (date-scoped overwrite for that day), and the principal dashboard shows the updated saved version after the save completes.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-remove-the-extra-manual-step-implied-in-the-admin-ui-update-the-admin-manage-school-principals-page-and-the-kepsek-registration-form-so-the-instructions-and-labels-are-in-english-and-reflect-that-saving-a-school-profile-will-also-assign-the-kepsek-user-role-automatically",
-      "title": "Remove the extra manual step implied in the admin UI: update the Admin “Manage School Principals” page and the Kepsek registration form so the instructions and labels are in English and reflect that saving a school profile will also assign the Kepsek/user role automatically.",
+      "id": "feature-make-the-admin-dashboard-automatically-reflect-the-latest-saved-report-data-after-a-principal-edits-saves-a-report-for-the-same-selected-date-without-requiring-a-manual-full-page-reload",
+      "title": "Make the admin dashboard automatically reflect the latest saved report data after a principal edits/saves a report (for the same selected date), without requiring a manual full-page reload.",
       "reqIds": [
         "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-required-date-selection-step-before-taking-attendance-absen-in-the-principal-flow-so-the-user-explicitly-chooses-a-report-date-before-completing-attendance-related-inputs",
+      "title": "Add a required date selection step before taking attendance (absen) in the principal flow, so the user explicitly chooses a report date before completing attendance-related inputs.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-report-download-feature-on-the-admin-dashboard-to-download-reports-for-the-currently-selected-date",
+      "title": "Add a report download feature on the admin dashboard to download reports for the currently selected date.",
+      "reqIds": [
+        "REQ-5"
       ],
       "version": 1
     }
@@ -28,14 +50,36 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Update the backend so that when an admin registers or updates a school profile for a principal, the target principal is automatically granted the Kepsek/user role (so they no longer see “Access Denied” after logging in).",
-      "reqIds": [
-        "REQ-1"
-      ],
+      "summary": "Allow principal to edit daily reports without any date restriction (not limited to today)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Persist edited daily report data immediately to the backend upon edit/save",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Admin dashboard automatically shows the latest updated report version (auto-refresh/update after edits)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Show a date picker/selection step before doing attendance (absen)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add report download feature to the admin dashboard",
+      "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Reduce friction for principals by auto-assigning Kepsek role and improving Access Denied onboarding",
+  "projectName": "Rebuild: Unrestricted daily report editing by date, date selection before attendance, and admin report download",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

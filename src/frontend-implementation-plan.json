@@ -1,52 +1,124 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Auto-assign role messaging and smoother Access Denied onboarding for principals",
+  "title": "Unrestricted date-scoped daily report editing, required date selection before attendance, admin auto-refresh, and admin report download",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Enhance Access Denied onboarding for guest/no-role users with Principal ID copy, clear instructions, and a Retry role refetch action.",
+      "id": "REQ-1",
+      "summary": "Allow principals to view and edit daily reports for any selected date without any today-only UI restrictions or date-based edit lockouts.",
       "acceptanceCriteria": [
-        "When a logged-in user has role=guest or no role, the Access Denied view displays their Principal ID in a read-only field and includes a Copy button that confirms success via toast.",
-        "The Access Denied view includes a Retry button that triggers a role refetch and, if the role becomes valid, routes the user into the correct dashboard without logout.",
-        "All user-facing text added/changed in this flow is in English."
+        "On the principal dashboard, selecting any calendar date allows opening the daily report for that date (if it exists) and editing it.",
+        "The UI does not display or enforce any rule that only today's report can be edited.",
+        "Edits for a past/future selected date are allowed and the Save action is enabled."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AccessDeniedPage.tsx",
+          "path": "frontend/src/pages/KepsekDashboardPage.tsx",
           "operation": "modify",
-          "description": "Update the Access Denied view UI to: (1) display the logged-in user's Principal ID (read-only) using Internet Identity, (2) add a one-click Copy action that uses the existing toast system to confirm success, (3) add clear next-step instructions in English for contacting an admin and sharing the Principal ID, and (4) add a Retry button that triggers a role refetch without logging out. Use existing shadcn/ui components already imported in the project for consistent styling; verify the component's usage instructions before implementing."
+          "description": "Audit and remove any UI logic that restricts editing to today; ensure the edit flow (summary -> edit form) works for whichever date is currently selected in the date selector."
+        },
+        {
+          "path": "frontend/src/components/kepsek/TodaySubmissionSummary.tsx",
+          "operation": "modify",
+          "description": "Ensure the summary component remains date-agnostic (no today-only language/logic affecting edit availability) and continues to show the Edit action for the selected date’s submitted report."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Ensure saving an edited daily report persists for the currently selected date and the principal UI immediately shows the backend-saved version for that same selected date.",
+      "acceptanceCriteria": [
+        "Submitting the daily report form calls the backend save operation and overwrites the report for the selected date (same day-key).",
+        "After a successful save, the principal dashboard reloads/refetches the selected date’s report and displays the latest saved values (including photo if present).",
+        "Refreshing the page after saving still shows the updated report for that selected date."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/kepsek/DailyReportForm.tsx",
+          "operation": "modify",
+          "description": "Confirm the saved DailyReport is always constructed using the currently selected day key (selectedDayKey) so the save is date-scoped; keep Save enabled for past/future dates and keep form state correctly synced when switching dates."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a small helper hook or exported utility to force-refresh the cached caller role (e.g., via React Query's queryClient refetch/invalidate for the caller role query key), so the Access Denied screen can reliably retry without requiring logout and without changing backend behavior."
+          "description": "Strengthen React Query invalidation/refetch after save so the selected date’s report query is refetched and stays consistent across navigation/refresh (principal report query keys and admin date-scoped query keys)."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/pages/KepsekDashboardPage.tsx",
           "operation": "modify",
-          "description": "Wire the improved AccessDeniedPage behavior into the app's role-based routing: ensure the role query can be retried from the Access Denied state and that a successful role refetch causes the app to render the correct dashboard automatically (admin or user) without a sign-out."
+          "description": "After a successful save, ensure the page refetches the selected date’s report and renders the latest saved backend state for that same selected date (including photo rendering via ExternalBlob direct URL when present)."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Update admin management copy and Kepsek registration form labels/instructions to English and reflect automatic role assignment upon saving a school profile.",
+      "summary": "Make the admin dashboard automatically update to the latest saved report data for a selected date after a principal saves, without a full-page reload.",
       "acceptanceCriteria": [
-        "AdminKepsekManagementPage no longer instructs admins to separately “assign the user role via backend”; it states that registering the school profile will assign access automatically.",
-        "KepsekProfileForm field labels and helper text are in English (e.g., “Principal ID”, not mixed-language labels).",
-        "Successful registration messaging remains clear and in English."
+        "Admin dashboard monitoring data for a selected date updates to the latest backend state after a report is saved for that date (e.g., via React Query invalidation and/or periodic refetch).",
+        "If an admin is viewing the same date that was edited, the new values appear in the monitoring table/detail view shortly after the save (without a hard refresh)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AdminKepsekManagementPage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Replace the current instructional alert text with English guidance that reflects the new behavior: admins should only collect the principal's Principal ID (after they log in once) and saving the school profile will automatically grant Kepsek/user access—remove any mention of manually assigning roles. Keep UI structure intact using existing shadcn/ui components; verify the component's usage instructions before implementing."
+          "description": "Add a React Query refetch strategy for admin date-scoped queries (e.g., refetchInterval and/or refetchOnWindowFocus) for monitoring rows and/or reports-for-date so the admin view updates shortly after principals save."
         },
         {
-          "path": "frontend/src/components/admin/KepsekProfileForm.tsx",
+          "path": "frontend/src/components/admin/MonitoringTable.tsx",
           "operation": "modify",
-          "description": "Update KepsekProfileForm labels, placeholders, helper text, and validation/toast messages to be fully English and to explicitly state that saving the school profile will also grant Kepsek/user access automatically. Ensure the success toast remains clear and in English. Use existing shadcn/ui form components as currently used; verify the component's usage instructions before implementing."
+          "description": "Ensure the monitoring table and its selected detail modal stay in sync with refreshed query data for the selected date (e.g., deriving selectedRow from latest rows remains correct so updated report values appear without reload)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Require principals to explicitly select a report date before attendance inputs become usable in the daily report flow.",
+      "acceptanceCriteria": [
+        "The principal UI clearly prompts for a date selection before attendance inputs are enabled/usable.",
+        "Attendance-related UI (e.g., attendance photo/time fields) is disabled or hidden until a valid date is selected.",
+        "Once a date is selected, attendance can be completed for that selected date and saved to the backend under that date."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/KepsekDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Change the principal flow to introduce an explicit, required date selection step (e.g., start with no selected date and prompt the user); hide or disable the daily report form until a valid date is selected, then pass the selected day key into the form."
+        },
+        {
+          "path": "frontend/src/components/kepsek/DailyReportForm.tsx",
+          "operation": "modify",
+          "description": "Support being disabled/hidden until a date is selected (e.g., via a new prop from KepsekDashboardPage); ensure attendance-related inputs are not usable until the date precondition is satisfied."
+        },
+        {
+          "path": "frontend/src/localization/dashboardId.ts",
+          "operation": "modify",
+          "description": "Add/adjust Indonesian UI strings needed to clearly prompt for required date selection before attendance (date-required helper text, disabled-state explanation)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add an admin dashboard download control to export reports for the currently selected date based on the same dataset shown in monitoring.",
+      "acceptanceCriteria": [
+        "Admin dashboard includes a clearly visible download control near the date selector (or in the dashboard header area).",
+        "Clicking download generates and downloads a file containing the reports for the currently selected date (at minimum: principal/school identifiers and daily report fields, including scores and notes; photo should be represented by presence/URL/identifier if binary is not embedded).",
+        "The downloaded content matches what the admin dashboard shows for that selected date (same dataset source as monitoring rows/reports-for-date)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Add a download button/control near the existing date selector; wire it to generate and download an export for the currently selected date using the same underlying admin monitoring dataset."
+        },
+        {
+          "path": "frontend/src/utils/reportDownload.ts",
+          "operation": "create",
+          "description": "Implement a small utility to transform admin monitoring rows/reports into a downloadable file (CSV or JSON) including principal/school identifiers and daily report fields; represent attendancePhoto via presence and/or getDirectURL() when available; trigger browser download via Blob + object URL."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Expose/reuse the admin date-scoped data needed for export (prefer the same query used by MonitoringTable for the selected date) so the downloaded content matches what the admin dashboard displays."
         }
       ]
     }
