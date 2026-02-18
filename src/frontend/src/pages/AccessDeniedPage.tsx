@@ -7,6 +7,7 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { BRANDING } from '../constants/branding';
 
 interface AccessDeniedPageProps {
   message?: string;
@@ -50,8 +51,8 @@ export default function AccessDeniedPage({ message }: AccessDeniedPageProps) {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <img
-            src="/assets/generated/shq-kepsek-logo.dim_1024x256.png"
-            alt="SHQ Kepsek Logo"
+            src={BRANDING.LOGO_PATH}
+            alt={BRANDING.LOGO_ALT}
             className="h-16 mx-auto mb-4"
           />
         </div>

@@ -1,79 +1,68 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Kepsek daily report per-day save/update and admin refresh (frontend)",
+  "title": "SHQ Kepsek Tracker — Replace logo assets and apply consistently across header, dashboards, and login",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Ensure edited Kepsek daily report fields (attendance times+photo, class/teacher control, wali santri response, program/problem solving) persist and immediately render updated for the selected date.",
+      "summary": "Create/replace the generated static branding assets (icon + wide logo) derived from ee.png using the exact filenames expected by the app.",
       "acceptanceCriteria": [
-        "From the Kepsek dashboard, editing an existing report for a selected date and pressing Save persists the new values in the backend.",
-        "After saving, the Kepsek dashboard shows the updated values without reverting to the previous data (no stale cache behavior).",
-        "Refreshing the browser after saving still shows the updated values for that same selected date.",
-        "All listed categories (attendance times+photo, class control, teacher control, wali santri response, program/problem solving) round-trip correctly (save -> fetch -> render)."
+        "frontend/public/assets/generated/shq-kepsek-icon.dim_512x512.png exists and is a 512x512 image derived from ee.png.",
+        "frontend/public/assets/generated/shq-kepsek-logo.dim_1024x256.png exists and is a 1024x256 image derived from ee.png.",
+        "The new assets visually match the uploaded logo and have a clean/transparent background where applicable."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/kepsek/AttendancePhotoField.tsx",
-          "operation": "modify",
-          "description": "Fix attendance photo UI state so it stays in sync with the form: update preview when the `value` prop changes (e.g., after loading an existing report for a date or after saving), and ensure remove/reset clears preview and input reliably. Also change any modified validation/upload messages to English to satisfy the language constraint. Verify the component's usage instructions before implementing."
+          "path": "frontend/public/assets/generated/shq-kepsek-icon.dim_512x512.png",
+          "operation": "create",
+          "description": "Add/replace the square icon asset (512x512) derived from the uploaded ee.png. Ensure output is a PNG at the exact path and filename required by BRANDING.ICON_PATH and the favicon link."
         },
         {
-          "path": "frontend/src/components/kepsek/DailyReportForm.tsx",
-          "operation": "modify",
-          "description": "Harden the save/update flow for all listed fields by ensuring the form state re-initializes correctly when `existingReport` changes and that the photo/time/note fields being edited are the same ones being submitted. Where helpful, force controlled re-mounting for date/report switches (e.g., via a stable `key`) to prevent stale form state. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Improve post-save cache consistency: after saving a daily report, update the per-day query cache and then invalidate/refetch the per-day report query so Kepsek sees the backend-confirmed data (prevents stale cache behavior). Keep query keys aligned with the existing per-day queryKey scheme. Verify the component's usage instructions before implementing."
+          "path": "frontend/public/assets/generated/shq-kepsek-logo.dim_1024x256.png",
+          "operation": "create",
+          "description": "Add/replace the wide logo asset (1024x256) derived from the uploaded ee.png. Ensure output is a PNG at the exact path and filename required by BRANDING.LOGO_PATH."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Make daily reports load/edit strictly per selected calendar day (no cross-day prefill) and keep the per-day key consistent across selection, save, and fetch.",
+      "summary": "Ensure header, login, and dashboards use centralized BRANDING constants for the new logo assets and remove any legacy/hardcoded logo references from these screens.",
       "acceptanceCriteria": [
-        "Saving a report for a given day overwrites that same day’s report (no duplicate entries for one day).",
-        "Selecting a different day that has no report displays an empty form (no carry-over of previous day values).",
-        "Selecting a day that already has a report displays that day’s saved values and allows editing.",
-        "The per-day key used by frontend and backend is consistent so save and fetch for the same selected date resolve to the same stored record."
+        "AppHeader displays the new square icon via BRANDING.ICON_PATH.",
+        "LoginPage displays the new wide logo via BRANDING.LOGO_PATH.",
+        "AdminDashboardPage and KepsekDashboardPage show the new logo via the shared AppHeader (no old logo appears anywhere on these pages).",
+        "There are no remaining references to the previous logo asset paths in the header, dashboards, or login page components."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/KepsekDashboardPage.tsx",
+          "path": "frontend/src/constants/branding.ts",
           "operation": "modify",
-          "description": "Ensure strict per-day behavior in the Kepsek dashboard by tying the rendered report form/summary to the selected day key (e.g., keyed rendering) so switching dates cannot reuse prior-day state; keep using timezone-safe date parsing utilities already present. Verify the component's usage instructions before implementing."
+          "description": "Confirm BRANDING.ICON_PATH and BRANDING.LOGO_PATH point to the new static assets under frontend/public/assets/generated and are the sole source of truth for logo/icon paths (no legacy paths)."
+        },
+        {
+          "path": "frontend/src/components/AppHeader.tsx",
+          "operation": "modify",
+          "description": "Ensure the header logo uses BRANDING.ICON_PATH/ICON_ALT (no hardcoded or legacy logo paths) and that the rendered icon is the only logo reference in the global header."
+        },
+        {
+          "path": "frontend/src/pages/LoginPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the login page logo uses BRANDING.LOGO_PATH/LOGO_ALT and remove any remaining hardcoded/legacy logo paths or imports."
         },
         {
           "path": "frontend/src/pages/AdminDashboardPage.tsx",
           "operation": "modify",
-          "description": "Make admin date selection timezone-safe and consistent with the app’s day-key logic by replacing `new Date(inputValue)` parsing/formatting with the shared dayKey utilities (parseDateInputSafe/formatDateForInput) so the selected calendar day aligns with stored per-day reports. Verify the component's usage instructions before implementing."
+          "description": "Verify AdminDashboardPage relies on the shared AppHeader for branding and remove any remaining hardcoded/legacy logo paths that could render on the page."
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/KepsekDashboardPage.tsx",
           "operation": "modify",
-          "description": "Confirm the per-day query keys and invalidations consistently use the same day key string (from getStartOfDayNanoseconds) for save, fetch, and cache updates, so selecting a day with no report yields `null` and resets the form. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "After Kepsek saves a daily report, ensure admin monitoring views refresh to reflect the updated report for that date via query invalidation/refetch.",
-      "acceptanceCriteria": [
-        "After a Kepsek saves a report for a date, the admin dashboard data for that date updates to match the saved report after the next fetch/refresh cycle.",
-        "Admin monitoring rows and any per-date report lists show the updated report content for that date (not the previous version)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Strengthen admin-side sync after Kepsek saves: invalidate and (where appropriate) refetch the admin per-date queries that back the monitoring table and per-date report lists for the saved date key, ensuring the next admin fetch/refresh cycle shows the updated content. Verify the component's usage instructions before implementing."
+          "description": "Verify KepsekDashboardPage relies on the shared AppHeader for branding and remove any remaining hardcoded/legacy logo paths that could render on the page."
         },
         {
-          "path": "frontend/src/components/admin/MonitoringTable.tsx",
+          "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Ensure the monitoring table detail dialog always derives the selected row/report from the latest query data (not stale captured objects) so updated per-day report content shows after invalidation/refetch. Verify the component's usage instructions before implementing."
+          "description": "Verify the favicon link references the new static icon asset path and remove any legacy favicon/logo references so only the generated icon is used."
         }
       ]
     }

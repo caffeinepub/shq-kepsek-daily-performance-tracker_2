@@ -1,78 +1,61 @@
 {
   "kind": "build_request",
-  "title": "Fix principal daily report fields not updating and ensure per-day save/sync to admin",
-  "projectName": "School Daily Reports",
+  "title": "Apply uploaded logo across header, dashboards, and login (replace old logo)",
+  "projectName": "SHQ Kepsek Tracker",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the principal (Kepsek) daily report save/update flow so edited values persist and immediately appear updated in the Kepsek dashboard for the selected date, including these fields: daily attendance (arrival time, departure time) + attendance photo, class control, teacher control, wali santri response, and program/problem solving.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "field yang tidak berfungsi / tidak dapat terupdate (absensi harian (jam datang dan jam pulang) + foto, kontrol kelas, kontrol guru, respon wali santri, program dan problem solving)."
-        ]
-      },
-      "acceptanceCriteria": [
-        "From the Kepsek dashboard, editing an existing report for a selected date and pressing Save persists the new values in the backend.",
-        "After saving, the Kepsek dashboard shows the updated values without reverting to the previous data (no stale cache behavior).",
-        "Refreshing the browser after saving still shows the updated values for that same selected date.",
-        "All listed categories (attendance times+photo, class control, teacher control, wali santri response, program/problem solving) round-trip correctly (save -> fetch -> render)."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Ensure the daily report is stored and edited strictly per day: the system must load the report for the selected calendar day, overwrite the existing report for that same day when saving again, and show an empty/new report form for a day that has no saved report (so a new day does not prefill yesterday’s data).",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "laporan harian kepala sekolah disimpan perhari dan di update perhari",
-          "saat kepala sekola menekan tombol simpan, datanya tersimpan sementara terlebih dahulu, jika harinya sudah lewat maka laporan sebelumnya kosong untuk digantikan laporan hari berikutnya."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Saving a report for a given day overwrites that same day’s report (no duplicate entries for one day).",
-        "Selecting a different day that has no report displays an empty form (no carry-over of previous day values).",
-        "Selecting a day that already has a report displays that day’s saved values and allows editing.",
-        "The per-day key used by frontend and backend is consistent so save and fetch for the same selected date resolve to the same stored record."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "After a Kepsek saves a daily report, ensure admin/management views reflect the update for that date by invalidating/refetching the relevant admin monitoring queries so the updated report appears in admin dashboards for the same day.",
+      "text": "Create/replace the static branding assets derived from the uploaded logo image (ee.png) and store them under frontend/public/assets/generated using the exact filenames referenced by the app: shq-kepsek-icon.dim_512x512.png (512x512) and shq-kepsek-logo.dim_1024x256.png (1024x256).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "hasilnya terupdate otomatis di data/dahsboard admin/manajemen."
+          "Ini logonya.. terapkan ke header, dashboard, halaman login. Ganti logo lama"
         ]
       },
       "acceptanceCriteria": [
-        "After a Kepsek saves a report for a date, the admin dashboard data for that date updates to match the saved report after the next fetch/refresh cycle.",
-        "Admin monitoring rows and any per-date report lists show the updated report content for that date (not the previous version)."
+        "frontend/public/assets/generated/shq-kepsek-icon.dim_512x512.png exists and is a 512x512 image derived from ee.png.",
+        "frontend/public/assets/generated/shq-kepsek-logo.dim_1024x256.png exists and is a 1024x256 image derived from ee.png.",
+        "The new assets visually match the uploaded logo and have a clean/transparent background where applicable."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Ensure the new logo is displayed consistently (and the old logo is fully replaced) on: (1) the global header (AppHeader), (2) the admin dashboard page, (3) the kepsek dashboard page, and (4) the login page, by relying on centralized branding constants (frontend/src/constants/branding.ts) and removing any remaining hardcoded/legacy logo paths in these screens.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "terapkan ke header, dashboard, halaman login. Ganti logo lama"
+        ]
+      },
+      "acceptanceCriteria": [
+        "AppHeader displays the new square icon via BRANDING.ICON_PATH.",
+        "LoginPage displays the new wide logo via BRANDING.LOGO_PATH.",
+        "AdminDashboardPage and KepsekDashboardPage show the new logo via the shared AppHeader (no old logo appears anywhere on these pages).",
+        "There are no remaining references to the previous logo asset paths in the header, dashboards, or login page components."
       ]
     }
   ],
   "constraints": [
-    "Use English for any user-facing text added/changed as part of this fix.",
-    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
-    "Do not edit files under frontend/src/components/ui, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, or frontend/src/main.tsx."
+    "Do not modify any files under frontend/src/components/ui (compose them only).",
+    "Do not modify files listed in SYSTEM_CONTEXT.frontend.immutablePaths.",
+    "Keep branding asset access purely static (served from frontend/public/assets/generated); do not proxy images through the backend."
   ],
   "nonGoals": [
-    "Do not add new report categories beyond the fields the user listed.",
-    "Do not implement third-party auth or integrations; use existing Internet Identity flow.",
-    "Do not add real-time/WebSocket syncing; rely on existing fetch/invalidation behavior."
+    "Changing the application name, tagline, or other copy beyond what is required to replace the logo.",
+    "Redesigning layouts or adding new features unrelated to applying/replacing the logo."
   ],
   "imageRequirements": {
-    "required": [],
+    "required": [
+      "Square logo icon with transparent background (shq-kepsek-icon.dim_512x512.png, 512x512)",
+      "Wide logo lockup with transparent background (shq-kepsek-logo.dim_1024x256.png, 1024x256)"
+    ],
     "edits": []
   },
   "userProfileUpdate": {

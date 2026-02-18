@@ -60,6 +60,8 @@ export default function AttendancePhotoField({ value, onChange }: AttendancePhot
       const previewUrl = URL.createObjectURL(file);
       setPreview(previewUrl);
 
+      // Trigger onChange only after blob is fully prepared
+      // This prevents excessive autosave triggers during upload
       onChange(blob);
       toast.success('Photo selected successfully');
     } catch (error: any) {

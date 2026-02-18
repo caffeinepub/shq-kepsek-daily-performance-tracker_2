@@ -5,13 +5,15 @@ import Nat "mo:core/Nat";
 import Time "mo:core/Time";
 import Order "mo:core/Order";
 import Array "mo:core/Array";
-import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
+import Iter "mo:core/Iter";
 import MixinStorage "blob-storage/Mixin";
 import BlobStorage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+
+
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -69,8 +71,8 @@ actor {
     report : ?DailyReport;
   };
 
-  var schools = Map.empty<Principal, School>();
-  var userProfiles = Map.empty<Principal, UserProfile>();
+  let schools = Map.empty<Principal, School>();
+  let userProfiles = Map.empty<Principal, UserProfile>();
   var dailyReports = Map.empty<Principal, Map.Map<Time.Time, DailyReport>>();
 
   // User Profile Management Functions
@@ -262,4 +264,3 @@ actor {
     days * 86400000000000;
   };
 };
-

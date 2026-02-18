@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the principal (Kepsek) daily report save/update behavior so edits persist per selected calendar day and immediately reflect in both Kepsek and admin/management dashboards.
+**Goal:** Replace the old application logo with the newly uploaded logo and display it consistently across the header, dashboards, and login screen.
 
 **Planned changes:**
-- Fix Kepsek daily report save/update so edited values persist and re-render correctly for the selected date (attendance arrival/departure times + attendance photo, class control, teacher control, wali santri response, and program/problem solving).
-- Ensure reports are stored, loaded, and overwritten strictly per calendar day: load the selected day’s report, save overwrites that same day’s report, and days without a saved report show an empty form (no prefill from previous day).
-- After saving a Kepsek report, invalidate/refetch relevant admin/management monitoring queries so admin dashboards for that same date show the updated report content.
+- Generate/replace the static branding assets derived from `ee.png` and store them under `frontend/public/assets/generated` using the exact required filenames: `shq-kepsek-icon.dim_512x512.png` and `shq-kepsek-logo.dim_1024x256.png`.
+- Centralize logo usage via `frontend/src/constants/branding.ts` and ensure `AppHeader`, `LoginPage`, `AdminDashboardPage`, and `KepsekDashboardPage` use the new branding constants (removing any legacy/hardcoded logo paths in those screens).
+- Ensure the old logo is fully removed from the header, dashboards, and login page views, with assets served statically from `frontend/public/assets/generated`.
 
-**User-visible outcome:** Kepsek can edit and save a daily report for a specific date and immediately see the updated values for that date (even after refresh), and admin/management dashboards reflect the updated report for that same day after the normal refresh/fetch cycle.
+**User-visible outcome:** The new logo replaces the old one everywhere it appears in the app (header, admin dashboard, kepsek dashboard, and login page), with consistent branding across these screens.

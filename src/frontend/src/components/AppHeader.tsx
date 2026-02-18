@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { dashboardId } from '../localization/dashboardId';
+import { BRANDING } from '../constants/branding';
 
 interface AppHeaderProps {
   children?: ReactNode;
@@ -23,8 +24,8 @@ export default function AppHeader({ children }: AppHeaderProps) {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
-            src="/assets/generated/shq-kepsek-icon.dim_512x512.png"
-            alt="SHQ Icon"
+            src={BRANDING.ICON_PATH}
+            alt={BRANDING.ICON_ALT}
             className="h-10 w-10"
           />
           <div>

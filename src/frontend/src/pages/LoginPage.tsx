@@ -2,6 +2,7 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LogIn } from 'lucide-react';
+import { BRANDING } from '../constants/branding';
 
 export default function LoginPage() {
   const { login, loginStatus } = useInternetIdentity();
@@ -14,8 +15,8 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center">
           <img
-            src="/assets/generated/shq-kepsek-logo.dim_1024x256.png"
-            alt="SHQ Kepsek Logo"
+            src={BRANDING.LOGO_PATH}
+            alt={BRANDING.LOGO_ALT}
             className="h-16 mx-auto mb-4"
           />
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">

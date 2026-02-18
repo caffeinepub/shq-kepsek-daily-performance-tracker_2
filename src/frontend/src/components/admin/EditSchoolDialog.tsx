@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useUpdateSchoolForPrincipal } from '../../hooks/useQueries';
+import { useSaveSchoolForPrincipal } from '../../hooks/useQueries';
 import { toast } from 'sonner';
 import type { School, SchoolSummary } from '../../backend';
 import { Principal } from '@dfinity/principal';
@@ -28,7 +28,7 @@ export default function EditSchoolDialog({ open, onOpenChange, schoolSummary }: 
   const [region, setRegion] = useState('');
   const [principalName, setPrincipalName] = useState('');
   const [active, setActive] = useState(true);
-  const updateSchool = useUpdateSchoolForPrincipal();
+  const updateSchool = useSaveSchoolForPrincipal();
 
   // Prefill form when schoolSummary changes
   useEffect(() => {

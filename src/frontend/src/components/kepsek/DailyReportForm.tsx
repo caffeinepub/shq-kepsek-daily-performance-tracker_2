@@ -10,8 +10,10 @@ import { toast } from 'sonner';
 import type { DailyReport } from '../../backend';
 import AttendancePhotoField from './AttendancePhotoField';
 import { ExternalBlob } from '../../backend';
-import { Clock, ClipboardCheck, Users, MessageSquare, Target } from 'lucide-react';
+import { Clock, ClipboardCheck, Users, MessageSquare, Target, Save, CheckCircle2, AlertCircle } from 'lucide-react';
 import { dashboardId } from '../../localization/dashboardId';
+import { useDebouncedCallback } from '../../hooks/useDebouncedCallback';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface DailyReportFormProps {
   existingReport?: DailyReport | null;
@@ -46,6 +48,8 @@ function nanosecondsToTime(nanos: bigint): string {
   return `${hours}:${minutes}`;
 }
 
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
 export default function DailyReportForm({ existingReport, selectedDate, selectedDayKey, onSuccess }: DailyReportFormProps) {
   const [attendancePhoto, setAttendancePhoto] = useState<ExternalBlob | null>(null);
   const [arrivalTime, setArrivalTime] = useState('');
@@ -59,6 +63,8 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
   const [catatanWaliSantri, setCatatanWaliSantri] = useState('');
   const [programSolvingChecked, setProgramSolvingChecked] = useState(false);
   const [catatanPermasalahanProgram, setCatatanPermasalahanProgram] = useState('');
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const saveMutation = useSaveDailyReport();
 
@@ -93,6 +99,9 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
       setProgramSolvingChecked(false);
       setCatatanPermasalahanProgram('');
     }
+    // Reset save status when date changes
+    setSaveStatus('idle');
+    setLastError(null);
   }, [existingReport, selectedDayKey]);
 
   const calculateScore = () => {
@@ -107,27 +116,16 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
 
   const currentScore = calculateScore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!attendancePhoto) {
-      toast.error(dashboardId.kepsek.form.validation.uploadPhoto);
+  // Autosave function
+  const performAutosave = async () => {
+    // Skip autosave if required fields are missing
+    if (!attendancePhoto || !arrivalTime || !departureTime) {
       return;
     }
 
-    if (!arrivalTime) {
-      toast.error(dashboardId.kepsek.form.validation.enterArrival);
-      return;
-    }
+    setSaveStatus('saving');
+    setLastError(null);
 
-    if (!departureTime) {
-      toast.error(dashboardId.kepsek.form.validation.enterDeparture);
-      return;
-    }
-
-    // CRITICAL: Use selectedDayKey for all time fields to ensure the report
-    // is saved under the correct calendar day, preventing duplicate entries
-    // and ensuring updates overwrite the existing report for that day.
     const report: DailyReport = {
       date: timeToNanoseconds(arrivalTime, selectedDayKey),
       attendanceScore: BigInt(attendancePhoto && arrivalTime && departureTime ? 20 : 0),
@@ -147,18 +145,117 @@ export default function DailyReportForm({ existingReport, selectedDate, selected
 
     try {
       await saveMutation.mutateAsync({ report, dateKey: selectedDayKey });
+      setSaveStatus('saved');
+      // Reset to idle after 2 seconds
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (error: any) {
+      console.error('Autosave error:', error);
+      setSaveStatus('error');
+      setLastError(error.message || 'Failed to save report');
+    }
+  };
+
+  // Debounced autosave - triggers 1.5 seconds after last change
+  // Cancel pending saves when selectedDayKey changes (date switch)
+  const debouncedAutosave = useDebouncedCallback(
+    performAutosave,
+    1500,
+    [selectedDayKey]
+  );
+
+  // Trigger autosave on any field change
+  useEffect(() => {
+    debouncedAutosave();
+  }, [
+    attendancePhoto,
+    arrivalTime,
+    departureTime,
+    catatanPresensi,
+    classControlChecked,
+    catatanAmatanKelas,
+    teacherControlChecked,
+    catatanMonitoringGuru,
+    waliSantriChecked,
+    catatanWaliSantri,
+    programSolvingChecked,
+    catatanPermasalahanProgram,
+  ]);
+
+  const handleManualSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!attendancePhoto) {
+      toast.error(dashboardId.kepsek.form.validation.uploadPhoto);
+      return;
+    }
+
+    if (!arrivalTime) {
+      toast.error(dashboardId.kepsek.form.validation.enterArrival);
+      return;
+    }
+
+    if (!departureTime) {
+      toast.error(dashboardId.kepsek.form.validation.enterDeparture);
+      return;
+    }
+
+    await performAutosave();
+    
+    if (saveStatus !== 'error') {
       toast.success(dashboardId.kepsek.form.successSave);
       if (onSuccess) {
         await onSuccess();
       }
-    } catch (error: any) {
-      console.error('Error saving report:', error);
-      toast.error(dashboardId.kepsek.form.errorSave);
     }
   };
 
+  const handleRetry = () => {
+    performAutosave();
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleManualSave} className="space-y-6">
+      {/* Save Status Indicator */}
+      {saveStatus !== 'idle' && (
+        <Alert variant={saveStatus === 'error' ? 'destructive' : 'default'} className="border-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {saveStatus === 'saving' && (
+                <>
+                  <Save className="h-4 w-4 animate-pulse" />
+                  <AlertDescription>Saving...</AlertDescription>
+                </>
+              )}
+              {saveStatus === 'saved' && (
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-600 dark:text-green-400">Saved successfully</AlertDescription>
+                </>
+              )}
+              {saveStatus === 'error' && (
+                <>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Save failed: {lastError || 'Unknown error'}
+                  </AlertDescription>
+                </>
+              )}
+            </div>
+            {saveStatus === 'error' && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRetry}
+                disabled={saveMutation.isPending}
+              >
+                Retry
+              </Button>
+            )}
+          </div>
+        </Alert>
+      )}
+
       {/* Score Display */}
       <Card className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/20 dark:to-green-950/20 border-2">
         <CardContent className="pt-6">

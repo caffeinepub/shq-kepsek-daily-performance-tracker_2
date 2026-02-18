@@ -1,56 +1,29 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T16:00:18.337Z",
-  "summary": "Diff shows substantial frontend work around per-day keys, form state reset, and attendance photo preview syncing, plus some admin date parsing changes. However, key parts of the save/fetch/update behavior and cross-view invalidation required by REQ-1/2/3 are not verifiable from the truncated diffs (notably the backend daily report save/get logic and the useSaveDailyReport invalidation/update logic). There are also UI text changes to Indonesian that appear unrelated to the request and conflict with the “English user-facing text” constraint.",
+  "generatedAt": "2026-02-18T06:15:43.335Z",
+  "summary": "The diff only updates project_state.json to record the requests as pending; it does not add the required static logo assets or update any frontend components/pages to use branding constants for the new logo.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Fix the Kepsek daily report save/update flow so edited values persist and immediately appear updated for the selected date (no stale cache), including attendance times+photo, class control, teacher control, wali santri response, and program/problem solving.",
-      "reason": "The diff shows frontend form/photo state syncing, but does not include enough non-truncated evidence of the actual save/update mutation implementation (e.g., useSaveDailyReport) nor backend save/get functions to confirm persistence, correct overwriting, and immediate post-save UI refresh behavior for all listed fields.",
+      "requirement": "Create/replace the static branding assets derived from the uploaded logo image (ee.png) and store them under frontend/public/assets/generated using the exact filenames: shq-kepsek-icon.dim_512x512.png (512x512) and shq-kepsek-logo.dim_1024x256.png (1024x256).",
+      "reason": "No files were added under frontend/public/assets/generated; the only modified file is project_state.json, so the required image assets are not created/replaced.",
       "evidence": [
-        "backend/main.mo (truncated; daily report functions not shown)",
-        "frontend/src/hooks/useQueries.ts (truncated; useSaveDailyReport implementation not shown)",
-        "frontend/src/components/kepsek/DailyReportForm.tsx (truncated; save handler/mutation call not shown)"
+        "project_state.json"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Ensure reports are stored/edited strictly per day: load by selected day, overwrite same-day on save, and show an empty form for days with no report; frontend/backend day key must be consistent.",
-      "reason": "Frontend references selectedDayKey and timezone-safe parsing, but the backend per-day keying and the exact save/get logic that overwrites a single record per day are not shown due to truncation, so consistency and overwrite/no-duplicates cannot be confirmed.",
+      "requirement": "Ensure the new logo is displayed consistently (and the old logo is fully replaced) on AppHeader, AdminDashboardPage, KepsekDashboardPage, and LoginPage by relying on centralized branding constants (frontend/src/constants/branding.ts) and removing remaining hardcoded/legacy logo paths.",
+      "reason": "No frontend source files (e.g., AppHeader/Login/Dashboards/branding constants) were modified; only project_state.json was changed, so the logo replacement and cleanup cannot be implemented.",
       "evidence": [
-        "backend/main.mo (truncated; daily report save/get logic not shown)",
-        "frontend/src/components/kepsek/DailyReportForm.tsx (mentions selectedDayKey but truncated before full behavior)",
-        "frontend/src/pages/KepsekDashboardPage.tsx (selectedDayKey computed; rest truncated)"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "requirement": "After Kepsek saves a daily report, invalidate/refetch relevant admin monitoring queries so admin dashboards reflect the update for that date.",
-      "reason": "The diff snippet of useQueries.ts does not include the daily report mutation’s onSuccess invalidation/refetch logic (only school-related mutations are visible in the provided truncation), so admin refresh behavior after saving a report cannot be verified from evidence provided.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated; daily report mutation/invalidation not shown)"
+        "project_state.json"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Changed AppHeader user-facing text to Indonesian (tagline/logout) instead of English.",
-      "reason": "Not requested by the BuildRequest and conflicts with the constraint requiring English for any user-facing text added/changed as part of this fix.",
-      "evidence": [
-        "frontend-file-summaries.txt (entry: \"frontend/src/components/AppHeader.tsx\" mentions Indonesian text changes)"
-      ]
-    }
-  ],
-  "confidence": 0.62,
+  "hallucinated_features": [],
+  "confidence": 0.95,
   "changed_files": [
-    "backend/main.mo",
-    "frontend-file-summaries.txt",
-    "frontend/src/components/kepsek/AttendancePhotoField.tsx",
-    "frontend/src/components/kepsek/DailyReportForm.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminDashboardPage.tsx",
-    "frontend/src/pages/KepsekDashboardPage.tsx",
     "project_state.json"
   ]
 }
